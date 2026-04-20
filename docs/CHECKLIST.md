@@ -3,8 +3,8 @@
 > The single source of truth for _what is done_ and _what is next_.
 > Short-horizon counterpart to [`ROADMAP.md`](./ROADMAP.md).
 
-**Last updated:** 2026-04-20 · end of Day 2
-**Current phase:** Phase 1 (MVP, Day 3 up next)
+**Last updated:** 2026-04-20 · Day 3 Phase A shipped, Phase B pending user handoff
+**Current phase:** Phase 1 (MVP, Day 3 in progress)
 
 ---
 
@@ -56,39 +56,47 @@
 - [x] `framer-motion`: `AnimatePresence` for view transitions, reveal stagger per card, hover lift, tap sink
 - [x] `/design-system` living styleguide route (palette, typography, primitives, shadows, keyframes, example composition)
 
+### Phase 1 · Day 3 (Phase A) — Ingestion foundation
+
+- [x] `.env.example` + `lib/env.ts` (public) + `lib/env.server.ts` (service-role-gated via `server-only`, zod-validated)
+- [x] SQL migration `0001_schema.sql` — `profiles`, `categories`, `sources`, `articles`, `bookmarks`, `summaries`, `ideas`, `drafts` with indexes and `updated_at` triggers
+- [x] SQL migration `0002_rls.sql` — public read on editorial tables; user-scoped CRUD on bookmarks / ideas / drafts
+- [x] SQL seed — 7 categories + 22 curated RSS sources
+- [x] `lib/supabase/{server,client,middleware,admin}.ts` helpers for RSC / client components / proxy / service-role
+- [x] Root `proxy.ts` (Next 16 rename of `middleware.ts`) keeps Supabase sessions fresh on every nav
+- [x] `lib/url.ts` — canonicalizer that strips tracking params, lowercases host, drops `www.`, normalizes trailing slash → dedupe key for articles
+- [x] `/api/ingest` route — parses every active source, extracts title/link/description/author/published/image, upserts `on conflict do nothing`, logs per-source status back to the `sources` table, bearer-auth or Vercel-Cron UA
+- [x] `vercel.json` cron: `/api/ingest` every 6 hours
+- [x] `docs/SUPABASE_SETUP.md` — step-by-step browser handoff so Phase B can start whenever
+
 ---
 
 ## In progress
 
-_Nothing is actively in flight right now._
+**Day 3 · Phase B** — blocked on user action (create Supabase project + paste env keys). Steps in [`docs/SUPABASE_SETUP.md`](./SUPABASE_SETUP.md).
 
 ---
 
-## Planned next — pick one to start
+## Planned next
 
-A near-term shortlist. Each item is self-contained enough to be one session of work.
-
-1. **Vercel deploy** — import `caerux/signal-newsletter` in the Vercel dashboard. No env vars needed yet, static pages will prerender. Outcome: a live URL to share.
-2. **Supabase + real data (Day 3 start)** — create the project, apply schema + RLS, stand up the RSS ingestion worker, hook Vercel Cron.
-3. **Polish pass** — focus-visible rings on primitives, skeleton loaders for feed states, proper `prefers-reduced-motion` handling for `framer-motion`, responsive collapse breakpoints.
-4. **Shortcut expansion** — wire `J`/`K` feed navigation, `S` to save focused story, `E` to expand insight panel, `D` to generate draft (stubbed until Day 5).
-
-Move an item here into **In progress** before starting it.
+1. **Phase B of Day 3** _(blocked on user)_ — create Supabase project, paste keys into `.env.local`, apply migrations, smoke-test `/api/ingest`.
+2. **Vercel deploy** — import repo, configure env vars, verify cron runs.
+3. **Polish pass** — focus rings, skeletons, reduced-motion, responsive breakpoints (can run in parallel).
 
 ---
 
 ## Upcoming MVP work _(Phase 1, Days 3-7)_
 
-### Day 3 — Data model, auth, ingestion
+### Day 3 · Phase B — Auth + live ingestion _(pending user handoff)_
 
-- [ ] Create Supabase project _(needs user action)_
-- [ ] Schema: `users`, `categories`, `sources`, `articles`, `bookmarks`, `summaries`, `ideas`, `drafts`
-- [ ] Row-Level Security policies on all user-scoped tables
-- [ ] `@supabase/ssr` server + browser client helpers
-- [ ] Supabase magic-link auth + GitHub OAuth
-- [ ] `/login` route with neobrutalist form
-- [ ] RSS ingestion worker at `/api/ingest` (parse ~20 curated feeds, dedupe by canonical URL)
-- [ ] Vercel Cron: run `/api/ingest` every 15 minutes
+- [ ] Create Supabase project _(user action — see SUPABASE_SETUP.md)_
+- [ ] Apply `0001_schema.sql`, `0002_rls.sql`, `seed.sql` via dashboard SQL editor
+- [ ] Paste `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `INGEST_SECRET` into `.env.local`
+- [ ] Smoke-test `POST /api/ingest` locally; verify article rows land in the DB
+- [ ] Configure Supabase auth: site URL + redirect URLs, enable GitHub provider
+- [ ] `/login` route with magic-link + GitHub OAuth (neobrutalist form)
+- [ ] Auth callback route at `/auth/callback`
+- [ ] Vercel deploy + cron verification (`/api/ingest` runs every 6h)
 
 ### Day 4 — Feed UX on real data
 
@@ -193,6 +201,12 @@ _Capture anything a future contributor (including future-me) might otherwise was
 - **Fonts:** Fraunces has variable opsz + italic, but Next 16 rejects combining `axes` with a `weight` array. We enumerate weights and add `style: ["normal", "italic"]`.
 - **Git auth:** personal repos use `https://caerux@github.com/...` URL so `git-credential-osxkeychain` stores the token under `(github.com, caerux)` — separate slot from the `walmart-user` entry. Any other remote URL keeps hitting the walmart slot.
 - **Scrollbar styling** ships at the CSS level via `.pane-scroll` (webkit + `scrollbar-color`). Only opt-in scrollable panes apply it, so Vercel system pages etc. keep defaults.
+- **Next 16 renamed `middleware` → `proxy`.** Root file is `proxy.ts` with exported function `proxy`. The internal helper stays at `lib/supabase/middleware.ts` / `updateSession()` so Supabase SSR docs map 1:1.
+- **Env var access is lazy.** `getPublicEnv()` / `getServerEnv()` throw the first time they're called with missing keys, so module import never crashes at build time (important while env vars aren't wired yet).
+- **Server-only secrets** live in `lib/env.server.ts` which imports `'server-only'`. The service-role Supabase client in `lib/supabase/admin.ts` is the only thing that reads it. Never import either from a client component.
+- **RSS dedup key is `canonical_url`**, computed in `lib/url.ts`. Strips utm_/fbclid/gclid/ref/source params, lowercases host, drops `www.`, forces https, removes trailing slash. Same key used by `/api/ingest` upsert `onConflict`.
+- **Ingest auth:** `/api/ingest` accepts either `Authorization: Bearer ${INGEST_SECRET}` or a Vercel-Cron UA. If `INGEST_SECRET` is unset, the route is open (dev convenience) — don't deploy without setting it.
+- **Cron cadence:** `vercel.json` runs `/api/ingest` every 6 hours. Hobby plan may downgrade to daily — adjust per account tier.
 
 ---
 
@@ -200,7 +214,7 @@ _Capture anything a future contributor (including future-me) might otherwise was
 
 Tracks work that needs a human decision before it can start.
 
-- [ ] **Supabase project** — who owns it, which region? Needed for Day 3.
+- [ ] **Supabase project** — user to create + paste keys per [`docs/SUPABASE_SETUP.md`](./SUPABASE_SETUP.md). Region: whatever is closest to chosen Vercel region.
 - [ ] **OpenAI / LLM provider** — OpenAI vs. Anthropic for MVP? Day 5 dependency.
 - [ ] **Vercel account** — personal account for deploy + Cron. Day 7 dependency (Day 1 for optional preview deploy).
 - [ ] **Production domain** — is `signal.so` the intent, or a placeholder? Influences OAuth redirect URLs.
