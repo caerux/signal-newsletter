@@ -1,15 +1,14 @@
 "use client";
 
 import { Search, Sparkles } from "lucide-react";
+import { Avatar, Button, Chip, Kbd, Tab } from "@/components/ui";
+import { useView, VIEW_LABELS, type AppView } from "./view-context";
 
-const TABS = [
-  { id: "feed", label: "Feed", active: true },
-  { id: "saved", label: "Saved" },
-  { id: "drafts", label: "Drafts" },
-  { id: "trending", label: "Trending" },
-];
+const TAB_ORDER: AppView[] = ["feed", "saved", "drafts", "trending"];
 
 export function Navbar() {
+  const { view, setView } = useView();
+
   return (
     <header
       className="sticky top-0 z-20 border-b-[2.5px] border-ink bg-bg px-6 py-4"
@@ -43,44 +42,52 @@ export function Navbar() {
           >
             Signal
           </span>
-          <span
-            className="chip"
+          <Chip
+            fill="mint"
             style={{
-              background: "var(--mint)",
               fontSize: 10,
               letterSpacing: "0.08em",
-              fontWeight: 700,
               textTransform: "uppercase",
+              fontWeight: 700,
             }}
           >
             beta
-          </span>
+          </Chip>
         </div>
       </div>
 
       {/* Tabs */}
       <nav className="flex items-center gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className="tab"
-            data-active={t.active ? "true" : "false"}
+        {TAB_ORDER.map((id) => (
+          <Tab
+            key={id}
+            active={view === id}
+            onClick={() => setView(id)}
           >
-            {t.label}
-          </button>
+            {VIEW_LABELS[id]}
+          </Tab>
         ))}
       </nav>
 
-      {/* Search */}
-      <label
-        className="relative flex items-center gap-3 mx-2"
+      {/* Search — opens command palette on click or ⌘K */}
+      <button
+        type="button"
+        onClick={() => {
+          const e = new KeyboardEvent("keydown", {
+            key: "k",
+            metaKey: true,
+            bubbles: true,
+          });
+          window.dispatchEvent(e);
+        }}
+        className="relative flex w-full items-center gap-3 text-left mx-2"
         style={{
           padding: "6px 10px 6px 6px",
           border: "var(--bw-3) solid var(--ink)",
           borderRadius: "var(--r-pill)",
           background: "#ffffff",
           boxShadow: "var(--sh-md)",
+          cursor: "text",
           transition:
             "transform var(--d-fast) var(--ease-swift), box-shadow var(--d-fast) var(--ease-swift), background-color var(--d-fast) var(--ease-swift)",
         }}
@@ -97,34 +104,19 @@ export function Navbar() {
         >
           <Search size={12} strokeWidth={2.5} />
         </span>
-        <input
-          type="text"
-          placeholder="Search signals, sources, drafts…"
-          className="flex-1 min-w-[260px] bg-transparent outline-none text-[13px] font-medium placeholder:text-muted"
-        />
-        <kbd className="kbd">⌘K</kbd>
-      </label>
+        <span className="flex-1 min-w-[260px] text-[13px] font-medium text-muted">
+          Search signals, sources, drafts…
+        </span>
+        <Kbd>⌘K</Kbd>
+      </button>
 
       {/* Right cluster */}
       <div className="flex items-center gap-2">
-        <button type="button" className="btn btn-primary">
+        <Button variant="primary">
           <Sparkles size={14} strokeWidth={2.5} />
           New idea
-        </button>
-        <div
-          className="grid place-items-center font-bold"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            background: "var(--lavender)",
-            border: "var(--bw-3) solid var(--ink)",
-            boxShadow: "var(--sh-sm)",
-            fontSize: 15,
-          }}
-        >
-          A
-        </div>
+        </Button>
+        <Avatar initial="A" />
       </div>
     </header>
   );

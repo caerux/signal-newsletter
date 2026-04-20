@@ -10,32 +10,46 @@ import {
   Database,
   Palette,
   TrendingUp,
+  type LucideIcon,
 } from "lucide-react";
+import { Brick, Eyebrow } from "@/components/ui";
+import { FILL_VAR, type Fill } from "@/lib/tokens";
+import { useView } from "./view-context";
 
 type Props = {
   collapsed: boolean;
   onToggle: () => void;
 };
 
-const CATEGORIES = [
-  { id: "trending", label: "Trending", icon: Flame, count: 24, accent: "var(--peach)" },
-  { id: "world",    label: "World",    icon: Globe,      count: 18, accent: "var(--sky)" },
-  { id: "ai",       label: "AI",       icon: Cpu,        count: 42, accent: "var(--lavender)" },
-  { id: "data",     label: "Data",     icon: Database,   count: 11, accent: "var(--mint)" },
-  { id: "design",   label: "Design",   icon: Palette,    count: 9,  accent: "var(--pink)" },
-  { id: "markets",  label: "Markets",  icon: TrendingUp, count: 15, accent: "var(--lemon)" },
+type Category = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  count: number;
+  accent: Fill;
+};
+
+const CATEGORIES: Category[] = [
+  { id: "trending", label: "Trending", icon: Flame, count: 24, accent: "peach" },
+  { id: "world",    label: "World",    icon: Globe,      count: 18, accent: "sky" },
+  { id: "ai",       label: "AI",       icon: Cpu,        count: 42, accent: "lavender" },
+  { id: "data",     label: "Data",     icon: Database,   count: 11, accent: "mint" },
+  { id: "design",   label: "Design",   icon: Palette,    count: 9,  accent: "pink" },
+  { id: "markets",  label: "Markets",  icon: TrendingUp, count: 15, accent: "lemon" },
 ];
 
 const COLLECTIONS = [
-  { id: "saved",  label: "Saved",  icon: Bookmark, count: 8 },
-  { id: "drafts", label: "Drafts", icon: Pencil,   count: 3 },
+  { id: "saved",  label: "Saved",  icon: Bookmark, count: 8, view: "saved"  as const },
+  { id: "drafts", label: "Drafts", icon: Pencil,   count: 3, view: "drafts" as const },
 ];
 
 export function Sidebar({ collapsed, onToggle }: Props) {
+  const { setView } = useView();
+
   if (collapsed) {
     return (
-      <aside
-        className="brick relative flex flex-col items-center gap-3 py-4"
+      <Brick
+        className="relative flex flex-col items-center gap-3 py-4"
         style={{
           animation: "slideInLeft var(--d-reveal) var(--ease-spring) both",
         }}
@@ -53,10 +67,10 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 width: 40,
                 height: 40,
                 borderRadius: "var(--r-md)",
-                background: c.accent,
+                background: FILL_VAR[c.accent],
                 border: "var(--bw-2) solid var(--ink)",
                 boxShadow: "var(--sh-xs)",
-                animation: `stampIn var(--d-reveal) var(--ease-spring) both`,
+                animation: "stampIn var(--d-reveal) var(--ease-spring) both",
                 animationDelay: `${80 + i * 60}ms`,
               }}
             >
@@ -64,19 +78,19 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             </button>
           );
         })}
-      </aside>
+      </Brick>
     );
   }
 
   return (
-    <aside
-      className="brick p-5"
+    <Brick
+      className="p-5"
       style={{
         animation: "slideInLeft var(--d-reveal) var(--ease-spring) both",
       }}
     >
       <div className="flex items-center justify-between mb-4">
-        <span className="label-eyebrow">Categories</span>
+        <Eyebrow>Categories</Eyebrow>
         <CollapseButton collapsed={collapsed} onToggle={onToggle} />
       </div>
 
@@ -93,12 +107,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             >
               <button
                 type="button"
-                className="group flex w-full items-center gap-3 px-2.5 py-2 text-left"
-                style={{
-                  borderRadius: "var(--r-md)",
-                  transition:
-                    "background-color var(--d-fast) var(--ease-swift), transform var(--d-instant) var(--ease-swift)",
-                }}
+                className="flex w-full items-center gap-3 px-2.5 py-2 text-left"
+                style={{ borderRadius: "var(--r-md)" }}
               >
                 <span
                   className="grid place-items-center"
@@ -106,7 +116,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                     width: 28,
                     height: 28,
                     borderRadius: "var(--r-sm)",
-                    background: c.accent,
+                    background: FILL_VAR[c.accent],
                     border: "var(--bw-2) solid var(--ink)",
                   }}
                 >
@@ -134,13 +144,11 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 
       <div
         className="my-5"
-        style={{
-          borderTop: "2px dashed rgba(14,14,14,0.2)",
-        }}
+        style={{ borderTop: "2px dashed rgba(14,14,14,0.2)" }}
       />
 
       <div className="mb-2">
-        <span className="label-eyebrow">Library</span>
+        <Eyebrow>Library</Eyebrow>
       </div>
       <ul className="flex flex-col gap-1.5">
         {COLLECTIONS.map((c, i) => {
@@ -155,6 +163,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             >
               <button
                 type="button"
+                onClick={() => setView(c.view)}
                 className="flex w-full items-center gap-3 px-2.5 py-2 text-left"
                 style={{ borderRadius: "var(--r-md)" }}
               >
@@ -188,7 +197,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
           );
         })}
       </ul>
-    </aside>
+    </Brick>
   );
 }
 
@@ -213,8 +222,6 @@ function CollapseButton({
         border: "var(--bw-2) solid var(--ink)",
         boxShadow: "var(--sh-xs)",
         cursor: "pointer",
-        transition:
-          "transform var(--d-instant) var(--ease-swift), box-shadow var(--d-instant) var(--ease-swift)",
       }}
     >
       <span

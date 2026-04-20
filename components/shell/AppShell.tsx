@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 import { InsightPanel } from "./InsightPanel";
+import { ViewProvider } from "./view-context";
+import { CommandPalette } from "./CommandPalette";
 
 type Collapse = { sb: boolean; ip: boolean };
 
@@ -54,36 +56,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const sidebarCol = state.sb
-    ? "var(--sidebar-rail-w)"
-    : "var(--sidebar-w)";
-  const insightCol = state.ip
-    ? "var(--insight-rail-w)"
-    : "var(--insight-w)";
+  const toggleSidebar = () => setState((s) => ({ ...s, sb: !s.sb }));
+  const toggleInsight = () => setState((s) => ({ ...s, ip: !s.ip }));
+
+  const sidebarCol = state.sb ? "var(--sidebar-rail-w)" : "var(--sidebar-w)";
+  const insightCol = state.ip ? "var(--insight-rail-w)" : "var(--insight-w)";
 
   return (
-    <div className="h-screen flex flex-col bg-bg text-ink">
-      <Navbar />
-      <div
-        className="grid flex-1 min-h-0 px-6 py-6"
-        style={{
-          gridTemplateColumns: `${sidebarCol} 1fr ${insightCol}`,
-          gap: "var(--gap-lg)",
-          transition: "grid-template-columns var(--d-slow) var(--ease-spring)",
-        }}
-      >
-        <Sidebar
-          collapsed={state.sb}
-          onToggle={() => setState((s) => ({ ...s, sb: !s.sb }))}
-        />
-        <main className="pane-scroll min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-2 pb-2">
-          {children}
-        </main>
-        <InsightPanel
-          collapsed={state.ip}
-          onToggle={() => setState((s) => ({ ...s, ip: !s.ip }))}
-        />
+    <ViewProvider>
+      <div className="h-screen flex flex-col bg-bg text-ink">
+        <Navbar />
+        <div
+          className="grid flex-1 min-h-0 px-6 py-6"
+          style={{
+            gridTemplateColumns: `${sidebarCol} 1fr ${insightCol}`,
+            gap: "var(--gap-lg)",
+            transition:
+              "grid-template-columns var(--d-slow) var(--ease-spring)",
+          }}
+        >
+          <Sidebar collapsed={state.sb} onToggle={toggleSidebar} />
+          <main className="pane-scroll min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-2 pb-2">
+            {children}
+          </main>
+          <InsightPanel collapsed={state.ip} onToggle={toggleInsight} />
+        </div>
       </div>
-    </div>
+      <CommandPalette
+        onToggleSidebar={toggleSidebar}
+        onToggleInsight={toggleInsight}
+      />
+    </ViewProvider>
   );
 }

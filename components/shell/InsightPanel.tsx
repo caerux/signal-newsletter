@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronsRight, Sparkles, Lightbulb, ListChecks } from "lucide-react";
+import { Brick, Button, Eyebrow } from "@/components/ui";
 
 type Props = {
   collapsed: boolean;
@@ -10,16 +11,16 @@ type Props = {
 export function InsightPanel({ collapsed, onToggle }: Props) {
   if (collapsed) {
     return (
-      <aside
-        className="brick flex flex-col items-center justify-between py-4"
+      <Brick
+        fill="lavender"
+        className="flex flex-col items-center justify-between py-4"
         style={{
-          background: "var(--lavender)",
           animation: "slideInRight var(--d-reveal) var(--ease-spring) both",
         }}
       >
         <CollapseButton collapsed={collapsed} onToggle={onToggle} />
         <div
-          className="font-display font-bold"
+          className="font-bold"
           style={{
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
@@ -33,24 +34,22 @@ export function InsightPanel({ collapsed, onToggle }: Props) {
           AI · Insight
         </div>
         <Sparkles size={18} strokeWidth={2.5} />
-      </aside>
+      </Brick>
     );
   }
 
   return (
-    <aside
-      className="brick p-5"
+    <Brick
+      fill="lavender"
+      className="p-5"
       style={{
-        background: "var(--lavender)",
         animation: "slideInRight var(--d-reveal) var(--ease-spring) both",
       }}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles size={16} strokeWidth={2.5} />
-          <span className="label-eyebrow" style={{ color: "var(--ink)" }}>
-            AI Insight
-          </span>
+          <Eyebrow style={{ color: "var(--ink)" }}>AI Insight</Eyebrow>
         </div>
         <CollapseButton collapsed={collapsed} onToggle={onToggle} />
       </div>
@@ -63,47 +62,37 @@ export function InsightPanel({ collapsed, onToggle }: Props) {
       </h2>
 
       {/* Key takeaway */}
-      <div
-        className="mb-4"
+      <Brick
+        variant="inverted"
+        className="mb-4 p-4"
         style={{
-          background: "var(--ink)",
-          color: "var(--bg)",
-          border: "var(--bw-3) solid var(--ink)",
-          borderRadius: "var(--r-md)",
-          boxShadow: "var(--sh-sm)",
-          padding: "14px 16px",
           animation: "popUp var(--d-reveal) var(--ease-spring) both",
           animationDelay: "120ms",
         }}
       >
-        <div
-          className="label-eyebrow mb-1.5"
+        <Eyebrow
+          className="mb-1.5 block"
           style={{ color: "var(--lemon)" }}
         >
           Key takeaway
-        </div>
+        </Eyebrow>
         <p className="text-[13px] leading-[1.55] font-medium">
-          Pick a story to surface its bias, timeline, and 3 angles you haven&apos;t
-          thought of yet.
+          Pick a story to surface its bias, timeline, and 3 angles you
+          haven&apos;t thought of yet.
         </p>
-      </div>
+      </Brick>
 
       {/* Suggested angles */}
-      <div
-        className="mb-4"
+      <Brick
+        className="mb-4 p-4"
         style={{
-          background: "#ffffff",
-          border: "var(--bw-3) solid var(--ink)",
-          borderRadius: "var(--r-md)",
-          boxShadow: "var(--sh-sm)",
-          padding: "14px 16px",
           animation: "popUp var(--d-reveal) var(--ease-spring) both",
           animationDelay: "200ms",
         }}
       >
         <div className="flex items-center gap-2 mb-3">
           <Lightbulb size={14} strokeWidth={2.5} />
-          <span className="label-eyebrow">Angles</span>
+          <Eyebrow>Angles</Eyebrow>
         </div>
         <ul className="flex flex-col gap-2.5">
           {[
@@ -130,30 +119,27 @@ export function InsightPanel({ collapsed, onToggle }: Props) {
             </li>
           ))}
         </ul>
-      </div>
+      </Brick>
 
       {/* Draft actions */}
-      <div
+      <Brick
+        fill="mint"
+        className="p-4"
         style={{
-          background: "var(--mint)",
-          border: "var(--bw-3) solid var(--ink)",
-          borderRadius: "var(--r-md)",
-          boxShadow: "var(--sh-sm)",
-          padding: "14px 16px",
           animation: "popUp var(--d-reveal) var(--ease-spring) both",
           animationDelay: "280ms",
         }}
       >
         <div className="flex items-center gap-2 mb-3">
           <ListChecks size={14} strokeWidth={2.5} />
-          <span className="label-eyebrow">Next actions</span>
+          <Eyebrow>Next actions</Eyebrow>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn">Draft outline</button>
-          <button type="button" className="btn">Fact check</button>
+          <Button>Draft outline</Button>
+          <Button>Fact check</Button>
         </div>
-      </div>
-    </aside>
+      </Brick>
+    </Brick>
   );
 }
 
