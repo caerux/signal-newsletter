@@ -8,13 +8,16 @@ A thinking and writing tool for people who create content. Discover what matters
 
 ## Status
 
-Pre-MVP. Phase 0 (foundation) complete. Phase 1 (7-day MVP build) is next.
+Pre-MVP. Phase 0 done, Phase 1 in progress — Day 2 shipped.
 
-- [x] Product brief
-- [x] Design system (Soft Neobrutalism)
+- [x] Product brief, design system, roadmap
 - [x] Design explorer with 5 directions explored, 1 chosen
-- [x] Roadmap
-- [ ] Day 1-7 MVP build
+- [x] Day 1 — Next.js app shell, tokens wired, 3-pane layout with collapsible sidebars
+- [x] Day 2 — UI primitives, stateful tabs, command palette, framer-motion polish, `/design-system` styleguide
+- [ ] Day 3 — Supabase schema + RSS ingestion
+- [ ] Day 4-7 — feed on real data, AI layer, editor, deploy
+
+Live task-level progress and upcoming work are tracked in **[`docs/CHECKLIST.md`](./docs/CHECKLIST.md)**.
 
 ---
 
@@ -22,30 +25,36 @@ Pre-MVP. Phase 0 (foundation) complete. Phase 1 (7-day MVP build) is next.
 
 ```
 signal-newsletter/
+├── app/                    → Next.js App Router (routes, layout, globals.css)
+│   ├── (app)/              → Authenticated app shell routes
+│   ├── design-system/      → Living styleguide for all primitives
+│   └── globals.css         → Design tokens + Tailwind 4 @theme inline config
+├── components/
+│   ├── ui/                 → Primitives: Brick, Button, Chip, Sticker, Kbd, Avatar, Tab, Eyebrow
+│   ├── shell/              → AppShell, Navbar, Sidebar, InsightPanel, CommandPalette, ViewContext
+│   └── feed/               → FeedViews + per-view placeholder data
+├── lib/                    → cn.ts (classnames), tokens.ts (CSS-var ↔ TS bridge)
 ├── docs/
+│   ├── CHECKLIST.md        → ✅ Live checklist — read this first
 │   ├── PRODUCT.md          → Vision, personas, features, expansion
 │   ├── DESIGN_SYSTEM.md    → Design spec (tokens, components, motion, a11y)
 │   └── ROADMAP.md          → Phased build plan (MVP → v2+)
 ├── design-explorer/        → Static HTML mockups of 5 design directions
-│   ├── index.html          → Picker / landing
-│   ├── 01-editorial-brutalist.html
-│   ├── 02-terminal-cyber.html
-│   ├── 03-neo-print-magazine.html
-│   ├── 04-soft-neobrutalism.html  ← CHOSEN
-│   └── 05-bento-glass-dark.html
+│   ├── 04-soft-neobrutalism.html  ← CHOSEN (reference implementation)
+│   └── …
+├── AGENTS.md               → House rules for agents working on this repo
 └── README.md (this file)
 ```
-
-The Next.js app will be added under this root during Phase 1 (Day 1).
 
 ---
 
 ## Quick links
 
+- **Checklist (what's done / what's next)** → [`docs/CHECKLIST.md`](./docs/CHECKLIST.md)
 - **Product brief** → [`docs/PRODUCT.md`](./docs/PRODUCT.md)
 - **Design system** → [`docs/DESIGN_SYSTEM.md`](./docs/DESIGN_SYSTEM.md)
 - **Roadmap** → [`docs/ROADMAP.md`](./docs/ROADMAP.md)
-- **Reference implementation** → [`design-explorer/04-soft-neobrutalism.html`](./design-explorer/04-soft-neobrutalism.html)
+- **Design reference** → [`design-explorer/04-soft-neobrutalism.html`](./design-explorer/04-soft-neobrutalism.html)
 
 ---
 
@@ -60,16 +69,21 @@ Or use any static file server. No build step needed — vanilla HTML + Tailwind 
 
 ---
 
-## Tech stack (planned for MVP)
+## Tech stack
 
-- **Framework** — Next.js 15 (App Router) + TypeScript
-- **Styling** — Tailwind CSS + CSS variables (tokens from design system)
-- **UI library** — shadcn/ui as component base, customized to Soft Neobrutalism
-- **Motion** — Framer Motion
-- **Command palette** — `cmdk`
+Shipped:
+
+- **Framework** — Next.js 16.2 (App Router + RSC) + React 19 + TypeScript 5, Turbopack, pnpm
+- **Styling** — Tailwind 4 CSS-first config (`@theme inline` in `app/globals.css`) + CSS variables for design tokens
+- **UI** — in-house primitives over global CSS classes (no shadcn); every primitive lives in `components/ui/`
+- **Motion** — Framer Motion for transitions + interaction, plus 8 custom `@keyframes` for reveal
+- **Command palette** — `cmdk` on `⌘K`
+
+Planned (not yet wired):
+
 - **Backend** — Supabase (Auth + Postgres + RLS)
-- **AI** — OpenAI (GPT-4o / GPT-5 at launch)
-- **Deployment** — Vercel (with Vercel Cron for ingestion)
+- **AI** — OpenAI, schema-validated with `zod`
+- **Deployment** — Vercel (with Vercel Cron for RSS ingestion)
 - **Analytics** — Plausible
 
 ---
