@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>05 — Bento Glass Dark · Signal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #07070c;
+        --bg-2: #0c0c14;
+        --card: #11111a;
+        --card-2: #15151f;
+        --fg: #ededf2;
+        --fg-2: #c4c4cf;
+        --muted: #8a8a98;
+        --faint: #4a4a58;
+        --line: rgba(255, 255, 255, 0.07);
+        --line-2: rgba(255, 255, 255, 0.12);
+        --blue: #5b8cff;
+        --blue-2: #7ea2ff;
+        --blue-glow: rgba(91, 140, 255, 0.45);
+        --hot: #ff5d73;
+        --rise: #3ddc97;
+        --cool: #60a5fa;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: Inter, system-ui, -apple-system, sans-serif; }
+
+      /* Ambient bg glow */
+      body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background:
+          radial-gradient(circle at 15% 10%, rgba(91, 140, 255, 0.12), transparent 40%),
+          radial-gradient(circle at 85% 85%, rgba(91, 140, 255, 0.08), transparent 45%),
+          radial-gradient(circle at 50% 0%, rgba(124, 88, 255, 0.06), transparent 50%);
+      }
+
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .glass {
+        background: rgba(20, 20, 28, 0.55);
+        backdrop-filter: blur(24px) saturate(140%);
+        -webkit-backdrop-filter: blur(24px) saturate(140%);
+        border: 1px solid var(--line-2);
+        border-radius: 16px;
+      }
+
+      /* Top nav */
+      .nav {
+        position: sticky; top: 12px; z-index: 20; margin: 12px 16px 0; padding: 10px 14px 10px 18px;
+        display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .brand-mark {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: linear-gradient(135deg, var(--blue), #9b6dff);
+        box-shadow: 0 0 20px var(--blue-glow);
+        display: grid; place-items: center; color: white; font-weight: 800; font-size: 14px;
+      }
+      .brand-name { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+      .brand-v { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--muted); background: var(--line); padding: 2px 6px; border-radius: 5px; }
+
+      .search {
+        justify-self: center; width: 440px; max-width: 100%;
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+        padding: 8px 12px; border-radius: 10px; color: var(--muted); font-size: 13px;
+      }
+      .search .kbd { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 6px; background: var(--line); border-radius: 4px; color: var(--fg-2); border: 1px solid var(--line-2); }
+
+      .nav-right { display: flex; align-items: center; gap: 10px; }
+      .icon-btn {
+        width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03); color: var(--fg-2); display: grid; place-items: center;
+        cursor: pointer; font-size: 15px;
+      }
+      .icon-btn:hover { background: rgba(91,140,255,0.12); color: var(--blue-2); border-color: var(--blue); }
+      .avatar {
+        width: 34px; height: 34px; border-radius: 10px;
+        background: linear-gradient(135deg, #ff7ab8, #9b6dff);
+        display: grid; place-items: center; font-weight: 700; font-size: 13px; color: white;
+      }
+      .new-draft {
+        padding: 8px 14px; background: var(--blue); color: white; border: 0; border-radius: 10px;
+        font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px -8px var(--blue-glow);
+        display: flex; align-items: center; gap: 6px;
+      }
+
+      /* Layout */
+      .layout { display: grid; grid-template-columns: 240px 1fr 420px; gap: 14px; padding: 14px 16px 20px; position: relative; z-index: 1; align-items: start; }
+
+      /* Sidebar (glass) */
+      .sidebar { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 12px; }
+      .side-pane { padding: 16px 14px; }
+      .side-head {
+        display: flex; justify-content: space-between; align-items: center;
+        font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+        color: var(--muted); margin-bottom: 12px; padding: 0 4px;
+      }
+      .side-head .count { color: var(--faint); }
+
+      .cat {
+        display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-radius: 8px;
+        font-size: 13.5px; cursor: pointer; color: var(--fg-2);
+      }
+      .cat:hover { background: rgba(255,255,255,0.04); color: var(--fg); }
+      .cat.active {
+        background: linear-gradient(180deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06));
+        color: var(--fg); box-shadow: inset 0 0 0 1px rgba(91,140,255,0.35);
+      }
+      .cat-left { display: flex; align-items: center; gap: 10px; }
+      .cat-ico { width: 18px; height: 18px; border-radius: 5px; background: var(--line); display: grid; place-items: center; font-size: 10px; font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--fg-2); }
+      .cat.active .cat-ico { background: var(--blue); color: white; box-shadow: 0 0 12px var(--blue-glow); }
+      .cat-count { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--faint); }
+
+      .kbd { font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--line-2); border-radius: 4px; color: var(--fg-2); }
+
+      /* Feed — bento */
+      .feed { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; grid-auto-rows: minmax(0, auto); }
+
+      .tile { padding: 20px; position: relative; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+      .tile.solid { background: var(--card); }
+
+      /* Hero tile */
+      .hero { grid-column: span 6; padding: 28px 28px 24px; background: linear-gradient(135deg, rgba(91,140,255,0.18), rgba(155,109,255,0.08) 60%, transparent); position: relative; overflow: hidden; }
+      .hero::before {
+        content: ""; position: absolute; inset: -40% -20% auto auto; width: 360px; height: 360px;
+        background: radial-gradient(circle, var(--blue-glow), transparent 60%);
+        filter: blur(10px); pointer-events: none;
+      }
+      .hero-kicker { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue-2); margin-bottom: 10px; display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; background: rgba(91,140,255,0.12); border: 1px solid rgba(91,140,255,0.3); border-radius: 999px; }
+      .hero-title { font-size: 42px; font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; margin: 8px 0 10px; max-width: 760px; }
+      .hero-title .grad { background: linear-gradient(90deg, var(--blue-2), #b89aff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .hero-sub { color: var(--fg-2); font-size: 15px; line-height: 1.55; max-width: 640px; }
+      .hero-stats { display: flex; gap: 24px; margin-top: 20px; }
+      .hstat { display: flex; flex-direction: column; gap: 2px; }
+      .hstat-num { font-size: 22px; font-weight: 700; }
+      .hstat-num .accent { color: var(--blue-2); }
+      .hstat-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+      /* Story tiles */
+      .story { cursor: pointer; transition: transform 140ms ease, border-color 140ms ease, background 140ms ease; display: flex; flex-direction: column; gap: 14px; }
+      .story:hover { transform: translateY(-2px); border-color: rgba(91,140,255,0.35); background: var(--card-2); }
+      .story-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .story-source { display: flex; align-items: center; gap: 10px; }
+      .src-ico { width: 26px; height: 26px; border-radius: 7px; background: var(--line); display: grid; place-items: center; font-family: "JetBrains Mono", monospace; font-size: 10.5px; font-weight: 700; color: var(--fg); }
+      .src-meta { font-size: 12px; line-height: 1.3; }
+      .src-name { color: var(--fg); font-weight: 600; }
+      .src-time { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.04em; }
+
+      .story.big { grid-column: span 4; }
+      .story.small { grid-column: span 2; }
+      .story.wide { grid-column: span 3; }
+
+      .story-title { font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.015em; margin: 0; }
+      .story.small .story-title { font-size: 16px; line-height: 1.25; }
+      .story-title .hl { color: var(--blue-2); }
+
+      .story-dek { color: var(--fg-2); font-size: 13.5px; line-height: 1.55; }
+      .story.small .story-dek { font-size: 12.5px; line-height: 1.5; }
+      .story-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; padding-top: 4px; }
+      .story-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+      /* Signal chips — glass pills with glow */
+      .chip {
+        display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 4px;
+        border: 1px solid var(--line-2); border-radius: 999px;
+        font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.08em;
+        font-weight: 600; color: var(--fg-2); background: rgba(255,255,255,0.04);
+      }
+      .chip.hot { color: var(--hot); border-color: rgba(255,93,115,0.4); background: rgba(255,93,115,0.1); box-shadow: 0 0 16px rgba(255,93,115,0.2); }
+      .chip.rise { color: var(--rise); border-color: rgba(61,220,151,0.4); background: rgba(61,220,151,0.1); box-shadow: 0 0 16px rgba(61,220,151,0.18); }
+      .chip.cool { color: var(--cool); border-color: rgba(96,165,250,0.4); background: rgba(96,165,250,0.1); box-shadow: 0 0 16px rgba(96,165,250,0.2); }
+      .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+
+      .icon-btn-sm {
+        width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+        color: var(--muted); display: grid; place-items: center; cursor: pointer; font-size: 12px;
+      }
+      .icon-btn-sm:hover { color: var(--blue-2); border-color: var(--blue); }
+
+      /* Stat tile */
+      .stat-tile { grid-column: span 2; padding: 18px; display: flex; flex-direction: column; gap: 6px; background: var(--card); }
+      .stat-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+      .stat-num { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+      .stat-num .delta { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 600; color: var(--rise); margin-left: 8px; }
+      .stat-spark { height: 28px; margin-top: 4px; }
+
+      /* Insight panel — glass */
+      .insight { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 12px; }
+      .insight-head {
+        padding: 18px 18px 20px;
+        background: linear-gradient(180deg, rgba(91,140,255,0.12), rgba(91,140,255,0.02));
+        position: relative; overflow: hidden;
+      }
+      .insight-head::before {
+        content: ""; position: absolute; inset: -50% -30% auto auto; width: 260px; height: 260px;
+        background: radial-gradient(circle, var(--blue-glow), transparent 60%); pointer-events: none;
+      }
+      .insight-kicker {
+        position: relative;
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+        color: var(--blue-2); margin-bottom: 10px;
+        padding: 3px 10px; border: 1px solid rgba(91,140,255,0.35); border-radius: 999px; background: rgba(91,140,255,0.1);
+      }
+      .insight-title { position: relative; font-size: 20px; font-weight: 600; line-height: 1.22; letter-spacing: -0.015em; margin: 0; color: var(--fg); }
+
+      .block { padding: 16px 18px; }
+      .block-label {
+        display: flex; align-items: center; justify-content: space-between;
+        font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+        color: var(--muted); margin-bottom: 12px;
+      }
+      .block-label .right { color: var(--faint); }
+
+      .bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .bullets li { font-size: 13.5px; line-height: 1.55; color: var(--fg-2); padding-left: 22px; position: relative; }
+      .bullets li::before {
+        content: ""; position: absolute; left: 0; top: 8px;
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--blue); box-shadow: 0 0 10px var(--blue-glow);
+      }
+
+      .why-card { background: rgba(91,140,255,0.06); border: 1px solid rgba(91,140,255,0.2); padding: 18px 20px; border-radius: 12px; margin-top: 2px; }
+      .why-quote { font-size: 15.5px; line-height: 1.45; font-weight: 500; color: var(--fg); }
+      .why-quote .grad { background: linear-gradient(90deg, var(--blue-2), #b89aff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+      .take-card { padding: 18px 20px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border: 1px solid var(--line-2); border-radius: 12px; }
+      .take-card .block-label { color: var(--blue-2); margin-bottom: 8px; }
+      .take-body { font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+      .ideas { display: flex; flex-direction: column; gap: 8px; }
+      .idea { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,0.02); cursor: pointer; font-size: 13.5px; line-height: 1.3; color: var(--fg-2); transition: all 120ms ease; }
+      .idea:hover { border-color: rgba(91,140,255,0.4); background: rgba(91,140,255,0.06); color: var(--fg); }
+      .idea-num {
+        width: 22px; height: 22px; border-radius: 6px;
+        display: grid; place-items: center;
+        font-family: "JetBrains Mono", monospace; font-size: 10.5px; font-weight: 700;
+        color: var(--blue-2); background: rgba(91,140,255,0.12); border: 1px solid rgba(91,140,255,0.3);
+      }
+      .idea-go { color: var(--faint); }
+      .idea:hover .idea-go { color: var(--blue-2); }
+
+      .draft-btn {
+        width: 100%; margin-top: 12px; padding: 13px;
+        background: linear-gradient(135deg, var(--blue), #9b6dff);
+        color: white; border: 0; border-radius: 11px;
+        font-family: Inter; font-weight: 600; font-size: 13.5px; letter-spacing: 0.02em;
+        cursor: pointer; box-shadow: 0 12px 32px -10px var(--blue-glow);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+      }
+      .draft-btn::before { content: "✦"; }
+
+      .back { position: fixed; bottom: 18px; left: 18px; z-index: 30; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; background: rgba(20,20,28,0.8); backdrop-filter: blur(12px); border: 1px solid var(--line-2); color: var(--fg); padding: 10px 14px; text-decoration: none; border-radius: 10px; }
+    </style>
+  </head>
+  <body>
+    <a class="back" href="index.html">← All directions</a>
+
+    <header class="nav glass">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div class="brand-name">Signal</div>
+        <div class="brand-v">v0.1</div>
+      </div>
+      <div class="search">
+        <span>⌕</span>
+        <span>Search feed, sources, ideas…</span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" title="Notifications">🔔</button>
+        <button class="icon-btn" title="Theme">◐</button>
+        <button class="new-draft">✦ New draft</button>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="glass side-pane">
+          <div class="side-head"><span>Categories</span><span class="count">05</span></div>
+          <div class="cat active">
+            <div class="cat-left"><div class="cat-ico">Ai</div>AI</div>
+            <span class="cat-count">428</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">St</div>Startups</div>
+            <span class="cat-count">211</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">Dv</div>Dev Tools</div>
+            <span class="cat-count">167</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">Pr</div>Product</div>
+            <span class="cat-count">98</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">Dn</div>Design</div>
+            <span class="cat-count">74</span>
+          </div>
+        </div>
+
+        <div class="glass side-pane">
+          <div class="side-head"><span>Saved</span><span class="count">12</span></div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">◇</div>Writing queue</div>
+            <span class="cat-count">7</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><div class="cat-ico">◈</div>Read later</div>
+            <span class="cat-count">5</span>
+          </div>
+        </div>
+
+        <div class="glass side-pane">
+          <div class="side-head"><span>Shortcuts</span></div>
+          <div style="font-size: 12.5px; color: var(--fg-2); line-height: 2.1;">
+            <div style="display:flex;justify-content:space-between;"><span>Navigate</span><span><span class="kbd">J</span> <span class="kbd">K</span></span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Save</span><span class="kbd">S</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Expand</span><span class="kbd">E</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Draft</span><span class="kbd">D</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Command</span><span class="kbd">⌘K</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Feed: bento -->
+      <section class="feed">
+        <div class="tile hero">
+          <div class="hero-kicker"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--blue-2);box-shadow:0 0 8px var(--blue-2);"></span>Live · Morning feed · AI</div>
+          <h1 class="hero-title">Your morning, <span class="grad">decoded.</span></h1>
+          <p class="hero-sub">3 signals that matter, distilled. Save what clicks, generate ideas on what you love, ship a draft before lunch.</p>
+          <div class="hero-stats">
+            <div class="hstat"><div class="hstat-num">14 <span class="delta" style="color: var(--rise); font-family: 'JetBrains Mono'; font-size: 12px;">+3</span></div><div class="hstat-label">new stories</div></div>
+            <div class="hstat"><div class="hstat-num">3<span style="color: var(--muted); font-weight: 400; font-size: 14px;">min</span></div><div class="hstat-label">since ingest</div></div>
+            <div class="hstat"><div class="hstat-num">7</div><div class="hstat-label">in queue</div></div>
+            <div class="hstat"><div class="hstat-num"><span class="accent">92</span></div><div class="hstat-label">relevance score</div></div>
+          </div>
+        </div>
+
+        <!-- Story 1 — big -->
+        <article class="tile story big" style="border-color: rgba(91,140,255,0.3); background: linear-gradient(180deg, rgba(91,140,255,0.05), var(--card));">
+          <div class="story-head">
+            <div class="story-source">
+              <div class="src-ico" style="background: linear-gradient(135deg,#0a0a0a,#333); color:#fff;">Oa</div>
+              <div class="src-meta">
+                <div class="src-name">OpenAI Blog</div>
+                <div class="src-time">2h ago · 4 min read</div>
+              </div>
+            </div>
+            <span class="chip hot"><span class="chip-dot"></span>Trending</span>
+          </div>
+          <h2 class="story-title">GPT-5 launches with native reasoning and <span class="hl">10× cheaper</span> inference.</h2>
+          <p class="story-dek">Flagship model ships with built-in chain-of-thought, agentic tool use, and a pricing model that undercuts Claude and Gemini for most workloads. Early benchmarks show a 32% lift on long-context reasoning.</p>
+          <div class="story-foot">
+            <div class="story-tags">
+              <span class="chip">AI</span>
+              <span class="chip">Models</span>
+              <span class="chip">OpenAI</span>
+            </div>
+            <div style="display:flex; gap: 6px;">
+              <button class="icon-btn-sm" title="Save">🔖</button>
+              <button class="icon-btn-sm" title="Ideas">✦</button>
+              <button class="icon-btn-sm" title="Open">↗</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Stat tile -->
+        <div class="tile stat-tile">
+          <div class="stat-label">Signal score</div>
+          <div class="stat-num">92<span class="delta">+18</span></div>
+          <div class="stat-label" style="color: var(--fg-2); text-transform: none; letter-spacing: 0.02em; font-family: Inter; font-weight: 400;">Top AI story this week</div>
+          <svg class="stat-spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+            <path d="M0,22 L12,20 L24,24 L36,18 L48,14 L60,15 L72,10 L84,6 L100,3" fill="none" stroke="var(--blue)" stroke-width="1.5" />
+            <path d="M0,22 L12,20 L24,24 L36,18 L48,14 L60,15 L72,10 L84,6 L100,3 L100,30 L0,30 Z" fill="url(#g1)" opacity="0.3" />
+            <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--blue)" /><stop offset="1" stop-color="var(--blue)" stop-opacity="0" /></linearGradient></defs>
+          </svg>
+        </div>
+
+        <!-- Story 2 — wide -->
+        <article class="tile story wide">
+          <div class="story-head">
+            <div class="story-source">
+              <div class="src-ico" style="background: #1da1f2; color:#fff;">Tc</div>
+              <div class="src-meta">
+                <div class="src-name">TechCrunch</div>
+                <div class="src-time">5h ago · 3 min read</div>
+              </div>
+            </div>
+            <span class="chip rise"><span class="chip-dot"></span>Rising</span>
+          </div>
+          <h2 class="story-title">Vercel acquires v0-design, betting on <span class="hl">AI-native</span> frontends.</h2>
+          <p class="story-dek">Deal folds a design-to-code studio into v0, adding component intelligence. The commoditization of frontend labour is now explicit strategy.</p>
+          <div class="story-foot">
+            <div class="story-tags">
+              <span class="chip">Startups</span>
+              <span class="chip">Tooling</span>
+            </div>
+            <div style="display:flex; gap: 6px;">
+              <button class="icon-btn-sm">🔖</button>
+              <button class="icon-btn-sm">↗</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Story 3 — wide -->
+        <article class="tile story wide">
+          <div class="story-head">
+            <div class="story-source">
+              <div class="src-ico" style="background: #ca8a04; color:#fff;">St</div>
+              <div class="src-meta">
+                <div class="src-name">Stratechery</div>
+                <div class="src-time">8h ago · 12 min read</div>
+              </div>
+            </div>
+            <span class="chip cool"><span class="chip-dot"></span>Cooling</span>
+          </div>
+          <h2 class="story-title">The quiet death of the <span class="hl">SaaS seat</span> — usage is eating subscription.</h2>
+          <p class="story-dek">LLM-priced APIs are retraining buyers to expect metered pricing, putting existential pressure on per-seat incumbents.</p>
+          <div class="story-foot">
+            <div class="story-tags">
+              <span class="chip">Business</span>
+              <span class="chip">SaaS</span>
+            </div>
+            <div style="display:flex; gap: 6px;">
+              <button class="icon-btn-sm">🔖</button>
+              <button class="icon-btn-sm">↗</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Small mini-tile -->
+        <div class="tile" style="grid-column: span 2; display:flex; flex-direction: column; gap: 12px; justify-content: space-between;">
+          <div>
+            <div class="stat-label">Trending sources</div>
+            <div style="margin-top: 12px; display:flex; flex-direction: column; gap: 8px;">
+              <div style="display:flex; align-items:center; justify-content: space-between; font-size: 13px;">
+                <span style="color: var(--fg);">OpenAI Blog</span>
+                <span style="color: var(--rise); font-family: 'JetBrains Mono'; font-size: 11px;">+340%</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content: space-between; font-size: 13px;">
+                <span style="color: var(--fg);">TechCrunch</span>
+                <span style="color: var(--rise); font-family: 'JetBrains Mono'; font-size: 11px;">+82%</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content: space-between; font-size: 13px;">
+                <span style="color: var(--fg);">Stratechery</span>
+                <span style="color: var(--muted); font-family: 'JetBrains Mono'; font-size: 11px;">−4%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tile" style="grid-column: span 4; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, rgba(91,140,255,0.08), transparent);">
+          <div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Load 11 more stories</div>
+            <div style="color: var(--muted); font-size: 13px;">Including 4 in Dev Tools and 3 in Product</div>
+          </div>
+          <button class="new-draft" style="background: rgba(91,140,255,0.15); color: var(--blue-2); border: 1px solid rgba(91,140,255,0.35); box-shadow: none;">Load more →</button>
+        </div>
+      </section>
+
+      <!-- Insight -->
+      <aside class="insight">
+        <div class="glass insight-head">
+          <span class="insight-kicker"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--blue-2);box-shadow:0 0 8px var(--blue-2);"></span>Insight · Story 01</span>
+          <h2 class="insight-title">GPT-5 launches with native reasoning and 10× cheaper inference.</h2>
+        </div>
+
+        <div class="glass block">
+          <div class="block-label"><span>Summary</span><span class="right">3 pts</span></div>
+          <ul class="bullets">
+            <li>First OpenAI model with reasoning baked into the base weights — no separate "o-series" branch.</li>
+            <li>Input $0.50 / 1M tokens, output $2.00 / 1M. Roughly 10× cheaper than GPT-4o on most jobs.</li>
+            <li>Agentic tool use is native — function calling, browsing, and code execution in a single graph.</li>
+          </ul>
+        </div>
+
+        <div class="glass block">
+          <div class="block-label"><span>Why it matters</span></div>
+          <div class="why-card">
+            <div class="why-quote">"This isn't a model release — it's a <span class="grad">repricing of intelligence.</span> Every AI startup's cost structure changed overnight."</div>
+          </div>
+        </div>
+
+        <div class="glass block">
+          <div class="take-card">
+            <div class="block-label"><span>Key takeaway</span></div>
+            <div class="take-body">If your product is a GPT-4 wrapper, you have 30 days to justify your margin or ship something only a reasoning-native model can do.</div>
+          </div>
+        </div>
+
+        <div class="glass block">
+          <div class="block-label"><span>Article ideas</span><span class="right">AI-generated</span></div>
+          <div class="ideas">
+            <div class="idea">
+              <div class="idea-num">01</div>
+              <div>Why GPT-5 just killed half the AI startup pitch decks</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">02</div>
+              <div>The real cost of intelligence, in three charts</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">03</div>
+              <div>I rebuilt my side project on GPT-5 in an afternoon</div>
+              <div class="idea-go">→</div>
+            </div>
+          </div>
+          <button class="draft-btn">Generate full draft</button>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

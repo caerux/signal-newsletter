@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>03 — Neo Print Magazine · Signal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f6f0e0;
+        --paper-2: #efe7d1;
+        --paper-3: #e8dec3;
+        --ink: #1f1a14;
+        --ink-2: #463c2c;
+        --muted: #8a7e64;
+        --line: rgba(31,26,20,0.12);
+        --terra: #c2410c;
+        --mustard: #ca8a04;
+        --sage: #4d7c0f;
+        --lapis: #1e40af;
+        --rose: #be185d;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+      body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(194,65,12,0.04), transparent 40%),
+          radial-gradient(circle at 80% 80%, rgba(202,138,4,0.04), transparent 40%);
+      }
+
+      .serif { font-family: Fraunces, Georgia, serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      /* Masthead */
+      .masthead { background: var(--ink); color: var(--paper); position: sticky; top: 0; z-index: 10; }
+      .masthead-inner { display: grid; grid-template-columns: 280px 1fr auto; align-items: center; padding: 14px 28px; gap: 32px; }
+      .brand { display: flex; align-items: baseline; gap: 10px; }
+      .brand-name { font-family: Fraunces; font-weight: 500; font-size: 24px; letter-spacing: -0.01em; font-style: italic; }
+      .brand-issue { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(246,240,224,0.5); }
+      .tagline { font-family: Fraunces; font-weight: 300; font-size: 13px; font-style: italic; color: rgba(246,240,224,0.7); }
+      .nav { display: flex; gap: 28px; }
+      .nav a { color: rgba(246,240,224,0.65); text-decoration: none; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid transparent; }
+      .nav a.active { color: var(--paper); border-bottom-color: var(--terra); }
+      .user { display: flex; align-items: center; gap: 12px; font-family: "JetBrains Mono", monospace; font-size: 11px; color: rgba(246,240,224,0.6); }
+      .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--terra); color: var(--paper); display: grid; place-items: center; font-family: Fraunces; font-weight: 500; font-style: italic; }
+
+      /* Date ribbon */
+      .ribbon { background: var(--paper-3); border-bottom: 1px solid var(--line); padding: 8px 28px; display: flex; justify-content: space-between; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); position: relative; z-index: 1; }
+      .ribbon .accent { color: var(--terra); font-weight: 700; }
+
+      /* Layout */
+      .layout { display: grid; grid-template-columns: 260px 1fr 400px; min-height: calc(100vh - 105px); position: relative; z-index: 1; }
+      .sidebar { padding: 32px 24px; border-right: 1px solid var(--line); }
+      .feed { padding: 40px 48px; }
+      .insight { padding: 36px 32px; background: var(--paper-2); border-left: 1px solid var(--line); }
+
+      /* Sidebar */
+      .side-block { margin-bottom: 36px; }
+      .side-title { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+      .cat { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; font-family: Fraunces; font-size: 16px; color: var(--ink-2); cursor: pointer; }
+      .cat.active { color: var(--ink); font-weight: 500; font-style: italic; }
+      .cat.active .dot { background: var(--terra); }
+      .cat-left { display: flex; align-items: center; gap: 10px; }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: transparent; border: 1.5px solid var(--muted); }
+      .cat-count { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--muted); }
+
+      /* Feed hero */
+      .hero { padding-bottom: 32px; border-bottom: 2px solid var(--ink); margin-bottom: 40px; }
+      .hero-kicker { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--terra); margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+      .hero-kicker::before { content: ""; width: 30px; height: 1px; background: var(--terra); display: inline-block; }
+      .hero-title { font-family: Fraunces; font-weight: 400; font-size: 72px; letter-spacing: -0.03em; line-height: 0.92; margin: 0 0 18px; color: var(--ink); }
+      .hero-title em { font-style: italic; color: var(--terra); }
+      .hero-lede { font-family: Fraunces; font-weight: 300; font-size: 20px; line-height: 1.45; color: var(--ink-2); max-width: 680px; }
+
+      /* Story */
+      .story { padding: 32px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 90px 1fr; gap: 36px; cursor: pointer; }
+      .story:hover .story-title { color: var(--terra); }
+      .story-num { font-family: Fraunces; font-weight: 300; font-style: italic; font-size: 72px; line-height: 0.9; color: var(--terra); }
+      .story-body { display: flex; flex-direction: column; gap: 12px; }
+      .story-byline { display: flex; align-items: center; gap: 12px; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .story-byline .source { color: var(--ink); font-weight: 700; }
+      .story-title { font-family: Fraunces; font-weight: 400; font-size: 38px; line-height: 1.05; letter-spacing: -0.02em; margin: 0; transition: color 120ms ease; }
+      .story-title em { font-style: italic; color: var(--terra); }
+      .story-dek { font-family: Fraunces; font-weight: 300; font-size: 17px; line-height: 1.5; color: var(--ink-2); max-width: 62ch; }
+      .story-tail { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+
+      /* Chips — magazine style, warm colored with bullet */
+      .chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 5px; border-radius: 999px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; }
+      .chip.hot { background: var(--terra); color: var(--paper); }
+      .chip.rise { background: var(--sage); color: var(--paper); }
+      .chip.cool { background: var(--lapis); color: var(--paper); }
+      .chip.tag { background: transparent; border: 1px solid var(--line); color: var(--ink-2); font-weight: 500; }
+      .chip-dot { width: 5px; height: 5px; background: currentColor; border-radius: 50%; opacity: 0.9; }
+
+      /* Insight panel */
+      .insight-kicker { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--terra); margin-bottom: 10px; }
+      .insight-title { font-family: Fraunces; font-weight: 400; font-size: 30px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 28px; color: var(--ink); }
+      .insight-title em { font-style: italic; color: var(--terra); }
+
+      .block { margin-bottom: 32px; }
+      .block-title { font-family: Fraunces; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+      .block-title::before { content: ""; width: 18px; height: 1px; background: var(--terra); }
+
+      .dropcap { float: left; font-family: Fraunces; font-weight: 400; font-size: 56px; line-height: 0.85; padding: 6px 10px 0 0; color: var(--terra); font-style: italic; }
+
+      .bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+      .bullets li { font-family: Fraunces; font-weight: 300; font-size: 15.5px; line-height: 1.5; color: var(--ink); padding-left: 24px; position: relative; }
+      .bullets li::before { content: ""; position: absolute; left: 0; top: 10px; width: 14px; height: 1px; background: var(--terra); }
+
+      .pull {
+        font-family: Fraunces; font-weight: 400; font-style: italic;
+        font-size: 26px; line-height: 1.18; letter-spacing: -0.015em;
+        color: var(--ink);
+        padding: 18px 0 18px 22px;
+        border-left: 3px solid var(--terra);
+        margin: 0;
+      }
+      .pull::before { content: "\201C"; font-family: Fraunces; color: var(--terra); font-size: 48px; line-height: 0; vertical-align: -0.25em; margin-right: 4px; }
+      .pull::after { content: "\201D"; font-family: Fraunces; color: var(--terra); font-size: 48px; line-height: 0; vertical-align: -0.5em; margin-left: 2px; }
+
+      .takeaway {
+        background: var(--ink); color: var(--paper); padding: 22px 22px 24px; position: relative;
+        font-family: Fraunces; font-weight: 300; font-size: 16px; line-height: 1.5;
+      }
+      .takeaway .tag {
+        display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; background: var(--terra); color: var(--paper); padding: 3px 9px; margin-bottom: 14px; font-weight: 700;
+      }
+
+      .ideas { display: flex; flex-direction: column; gap: 2px; }
+      .idea { display: grid; grid-template-columns: 30px 1fr 20px; align-items: baseline; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--line); cursor: pointer; }
+      .idea:last-child { border-bottom: 1px solid var(--line); }
+      .idea:hover .idea-title { color: var(--terra); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+      .idea-num { font-family: Fraunces; font-style: italic; font-weight: 400; font-size: 22px; color: var(--terra); }
+      .idea-title { font-family: Fraunces; font-weight: 400; font-size: 17px; line-height: 1.2; color: var(--ink); transition: color 120ms ease; }
+      .idea-go { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
+
+      .draft-btn {
+        width: 100%; margin-top: 22px; padding: 16px; background: var(--terra); color: var(--paper); border: 0;
+        font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700;
+        cursor: pointer;
+      }
+      .draft-btn:hover { background: var(--ink); }
+
+      .back { position: fixed; bottom: 18px; left: 18px; z-index: 20; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 10px 14px; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <a class="back" href="index.html">← All directions</a>
+
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand">
+          <div class="brand-name">Signal</div>
+          <div class="brand-issue">Issue 112 · Vol IV</div>
+          <div class="tagline">— where ideas start</div>
+        </div>
+        <nav class="nav">
+          <a class="active" href="#">Today</a>
+          <a href="#">Dispatches</a>
+          <a href="#">Queue</a>
+          <a href="#">Drafts</a>
+          <a href="#">Archive</a>
+        </nav>
+        <div class="user">
+          <span>akshit</span>
+          <div class="avatar">A</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="ribbon">
+      <span>Monday · 20 April 2026 · 07:42 IST</span>
+      <span><span class="accent">14</span> new this morning · ingested 3 min ago</span>
+      <span>Weather for writers: clear, focused</span>
+    </div>
+
+    <main class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="side-block">
+          <div class="side-title"><span>Sections</span><span>05</span></div>
+          <div class="cat active">
+            <div class="cat-left"><span class="dot"></span>Artificial Intelligence</div>
+            <span class="cat-count">428</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Startups</div>
+            <span class="cat-count">211</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Dev Tools</div>
+            <span class="cat-count">167</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Product</div>
+            <span class="cat-count">98</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Design</div>
+            <span class="cat-count">74</span>
+          </div>
+        </div>
+
+        <div class="side-block">
+          <div class="side-title"><span>Saved</span><span>12</span></div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Writing queue</div>
+            <span class="cat-count">7</span>
+          </div>
+          <div class="cat">
+            <div class="cat-left"><span class="dot"></span>Read later</div>
+            <span class="cat-count">5</span>
+          </div>
+        </div>
+
+        <div class="side-block" style="padding: 18px 18px 20px; background: var(--paper-3); border-left: 3px solid var(--terra);">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--terra); margin-bottom: 10px; font-weight: 700;">Editor's picks</div>
+          <div style="font-family: Fraunces; font-style: italic; font-weight: 400; font-size: 16px; line-height: 1.25; color: var(--ink); margin-bottom: 4px;">"The three stories that will define your week."</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em;">— curated · read in 8 min</div>
+        </div>
+      </aside>
+
+      <!-- Feed -->
+      <section class="feed">
+        <div class="hero">
+          <div class="hero-kicker">Morning Edition · AI</div>
+          <h1 class="hero-title">The stories <em>shaping</em> intelligence today.</h1>
+          <p class="hero-lede">Three beats to start with: a foundation model that reprices the stack, an acquisition that redraws the front-end map, and a quiet thesis on why per-seat pricing is dying.</p>
+        </div>
+
+        <article class="story">
+          <div class="story-num">I</div>
+          <div class="story-body">
+            <div class="story-byline">
+              <span class="source">OpenAI Blog</span>
+              <span>·</span>
+              <span>2 hr ago</span>
+              <span>·</span>
+              <span>4 min read</span>
+            </div>
+            <h2 class="story-title">GPT-5 launches with native reasoning and <em>ten times cheaper</em> inference.</h2>
+            <p class="story-dek">The new flagship model ships with built-in chain-of-thought, agentic tool use, and a pricing model that undercuts Claude and Gemini for most workloads. Early benchmarks show a 32% lift on long-context reasoning.</p>
+            <div class="story-tail">
+              <span class="chip hot"><span class="chip-dot"></span>Trending</span>
+              <span class="chip tag">AI · Models</span>
+              <span class="chip tag">OpenAI</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story">
+          <div class="story-num">II</div>
+          <div class="story-body">
+            <div class="story-byline">
+              <span class="source">TechCrunch</span>
+              <span>·</span>
+              <span>5 hr ago</span>
+              <span>·</span>
+              <span>3 min read</span>
+            </div>
+            <h2 class="story-title">Vercel acquires v0-design, betting on <em>AI-native</em> frontends.</h2>
+            <p class="story-dek">The deal folds a specialist design-to-code studio into v0, adding component intelligence and brand-aware generation. Industry reads: the commoditization of frontend labour is now explicit strategy.</p>
+            <div class="story-tail">
+              <span class="chip rise"><span class="chip-dot"></span>Rising</span>
+              <span class="chip tag">Startups · Tooling</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="story">
+          <div class="story-num">III</div>
+          <div class="story-body">
+            <div class="story-byline">
+              <span class="source">Stratechery</span>
+              <span>·</span>
+              <span>8 hr ago</span>
+              <span>·</span>
+              <span>12 min read</span>
+            </div>
+            <h2 class="story-title">The quiet death of the <em>SaaS seat</em> — usage is eating subscription.</h2>
+            <p class="story-dek">Ben Thompson argues that LLM-priced APIs are retraining buyers to expect metered pricing, putting existential pressure on per-seat SaaS incumbents who can't convert without cannibalising margin.</p>
+            <div class="story-tail">
+              <span class="chip cool"><span class="chip-dot"></span>Cooling</span>
+              <span class="chip tag">Business · SaaS</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Insight panel -->
+      <aside class="insight">
+        <div class="insight-kicker">— Insight · Story I</div>
+        <h2 class="insight-title">GPT-5 launches with native reasoning and <em>ten times cheaper</em> inference.</h2>
+
+        <div class="block">
+          <div class="block-title">The summary</div>
+          <ul class="bullets">
+            <li>First OpenAI model with reasoning baked into the base weights — no separate "o-series" branch.</li>
+            <li>Input pricing drops to $0.50 per million tokens; output $2.00. Roughly 10× cheaper than GPT-4o on most jobs.</li>
+            <li>Agentic tool use is native — function calling, browsing, and code execution in a single graph.</li>
+          </ul>
+        </div>
+
+        <div class="block">
+          <div class="block-title">Why it matters</div>
+          <blockquote class="pull">This isn't a model release — it's a repricing of intelligence. Every AI startup's cost structure changed overnight.</blockquote>
+        </div>
+
+        <div class="block">
+          <div class="takeaway">
+            <span class="tag">The Takeaway</span>
+            <div>If your product is a GPT-4 wrapper, you have thirty days to justify your margin — or ship something only a reasoning-native model can do.</div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">Article ideas · for your pen</div>
+          <div class="ideas">
+            <div class="idea">
+              <div class="idea-num">i.</div>
+              <div class="idea-title">Why GPT-5 just killed half the AI startup pitch decks</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">ii.</div>
+              <div class="idea-title">The real cost of intelligence, in three charts</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">iii.</div>
+              <div class="idea-title">I rebuilt my side project on GPT-5 in an afternoon</div>
+              <div class="idea-go">→</div>
+            </div>
+          </div>
+          <button class="draft-btn">Compose draft →</button>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

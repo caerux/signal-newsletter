@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>01 — Editorial Brutalist · Signal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f4efe3;
+        --paper-2: #ede6d4;
+        --ink: #141210;
+        --ink-2: #3a342c;
+        --muted: #6b6459;
+        --rule: #141210;
+        --accent: #c2410c;
+        --hot: #b91c1c;
+        --rise: #15803d;
+        --cool: #1e40af;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+      body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background-image: radial-gradient(rgba(20,18,16,0.06) 1px, transparent 1px);
+        background-size: 3px 3px; opacity: 0.5;
+      }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .serif { font-family: Fraunces, Georgia, serif; }
+
+      /* Top masthead */
+      .masthead { border-bottom: 2px solid var(--ink); background: var(--paper); position: sticky; top: 0; z-index: 10; }
+      .masthead-inner { display: grid; grid-template-columns: 260px 1fr 360px; align-items: stretch; }
+      .wordmark { padding: 18px 24px; border-right: 1px solid var(--ink); display: flex; align-items: baseline; gap: 10px; }
+      .wordmark-big { font-family: Fraunces; font-weight: 500; font-size: 28px; letter-spacing: -0.02em; font-style: italic; }
+      .wordmark-small { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+      .nav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+      .nav-links { display: flex; gap: 28px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+      .nav-links a { color: var(--ink); text-decoration: none; padding: 22px 0; border-bottom: 2px solid transparent; }
+      .nav-links a.active { border-bottom-color: var(--ink); }
+      .nav-meta { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.12em; }
+      .user { padding: 18px 24px; border-left: 1px solid var(--ink); display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+      .avatar { width: 32px; height: 32px; border-radius: 0; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-family: Fraunces; font-style: italic; font-weight: 500; }
+
+      /* 3-pane layout */
+      .layout { display: grid; grid-template-columns: 260px 1fr 400px; min-height: calc(100vh - 67px); position: relative; z-index: 1; }
+      .sidebar { border-right: 1px solid var(--ink); padding: 28px 24px; }
+      .feed { padding: 40px 48px; border-right: 1px solid var(--ink); }
+      .insight { padding: 32px 28px; background: var(--paper-2); }
+
+      /* Sidebar */
+      .side-section { margin-bottom: 36px; }
+      .side-title { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between; }
+      .cat { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed rgba(20,18,16,0.2); font-size: 15px; cursor: pointer; }
+      .cat.active { font-weight: 600; }
+      .cat.active::before { content: "→"; font-family: "JetBrains Mono"; margin-right: 8px; color: var(--accent); }
+      .cat-count { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); }
+
+      /* Feed hero */
+      .feed-masthead { padding-bottom: 22px; border-bottom: 1px solid var(--ink); margin-bottom: 36px; display: flex; align-items: flex-end; justify-content: space-between; }
+      .feed-date { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+      .feed-h1 { font-family: Fraunces; font-weight: 400; font-size: 56px; letter-spacing: -0.025em; line-height: 0.95; margin: 0; }
+      .feed-h1 em { font-style: italic; color: var(--accent); }
+      .feed-meta { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; line-height: 1.8; }
+
+      /* Cards */
+      .story { padding: 28px 0; border-bottom: 1px solid var(--ink); display: grid; grid-template-columns: 60px 1fr; gap: 28px; cursor: pointer; transition: background 120ms ease; }
+      .story:hover { background: rgba(20,18,16,0.02); }
+      .story-num { font-family: Fraunces; font-weight: 300; font-size: 56px; line-height: 0.9; color: var(--ink); font-feature-settings: "lnum"; }
+      .story-body { display: flex; flex-direction: column; gap: 12px; }
+      .story-meta { display: flex; align-items: center; gap: 14px; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      .story-source { color: var(--ink); font-weight: 700; }
+      .story-title { font-family: Fraunces; font-weight: 500; font-size: 32px; line-height: 1.05; letter-spacing: -0.015em; margin: 0; }
+      .story-title em { font-style: italic; }
+      .story-dek { font-size: 15.5px; line-height: 1.6; color: var(--ink-2); max-width: 640px; }
+      .story-foot { display: flex; align-items: center; gap: 18px; margin-top: 6px; }
+
+      /* Signal chips — Brutalist = hard-bordered rectangles, mono label */
+      .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1.5px solid var(--ink); font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: var(--paper); }
+      .chip.hot { background: var(--hot); color: var(--paper); border-color: var(--hot); }
+      .chip.rise { background: var(--rise); color: var(--paper); border-color: var(--rise); }
+      .chip.cool { background: var(--cool); color: var(--paper); border-color: var(--cool); }
+      .chip-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+
+      .kbd { font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 6px; border: 1px solid var(--ink); background: var(--paper-2); letter-spacing: 0.1em; }
+
+      /* Insight panel */
+      .insight-eyebrow { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+      .insight-title { font-family: Fraunces; font-weight: 500; font-size: 26px; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 24px; }
+      .block { margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(20,18,16,0.18); }
+      .block:last-child { border: 0; }
+      .block-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+      .bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .bullets li { padding-left: 22px; position: relative; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+      .bullets li::before { content: "—"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+      .pullquote { font-family: Fraunces; font-weight: 400; font-style: italic; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; }
+      .takeaway { background: var(--ink); color: var(--paper); padding: 18px 20px; font-size: 14.5px; line-height: 1.55; }
+      .takeaway .block-label { color: rgba(244,239,227,0.7); margin-bottom: 8px; }
+      .ideas { display: flex; flex-direction: column; gap: 12px; }
+      .idea { padding: 14px 16px; border: 1px solid var(--ink); background: var(--paper); display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 12px; cursor: pointer; }
+      .idea:hover { background: var(--ink); color: var(--paper); }
+      .idea:hover .idea-num { color: var(--paper); }
+      .idea-num { font-family: Fraunces; font-style: italic; font-weight: 400; font-size: 18px; color: var(--accent); }
+      .idea-title { font-family: Fraunces; font-size: 15.5px; line-height: 1.25; font-weight: 500; }
+      .idea-go { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+      .draft-btn { width: 100%; padding: 16px; background: var(--accent); color: var(--paper); border: 0; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; cursor: pointer; margin-top: 8px; }
+      .draft-btn:hover { background: var(--ink); }
+
+      /* Footer ribbon */
+      .ribbon { border-top: 1px solid var(--ink); padding: 14px 0; margin-top: 60px; display: flex; justify-content: space-between; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+      .back { position: fixed; bottom: 18px; left: 18px; z-index: 20; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 10px 14px; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <a class="back" href="index.html">← All directions</a>
+
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="wordmark">
+          <div class="wordmark-big">Signal</div>
+          <div class="wordmark-small">No. 001</div>
+        </div>
+        <nav class="nav">
+          <div class="nav-links">
+            <a class="active" href="#">Today</a>
+            <a href="#">Queue</a>
+            <a href="#">Drafts</a>
+            <a href="#">Archive</a>
+          </div>
+          <div class="nav-meta">Mon · 20 Apr 2026 · 07:42 IST</div>
+        </nav>
+        <div class="user">
+          <span class="mono" style="font-size: 11px; color: var(--muted);">akshit@signal</span>
+          <div class="avatar">A</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="side-section">
+          <div class="side-title">
+            <span>Categories</span>
+            <span>05</span>
+          </div>
+          <div class="cat active">AI <span class="cat-count">428</span></div>
+          <div class="cat">Startups <span class="cat-count">211</span></div>
+          <div class="cat">Dev Tools <span class="cat-count">167</span></div>
+          <div class="cat">Product <span class="cat-count">98</span></div>
+          <div class="cat">Design <span class="cat-count">74</span></div>
+        </div>
+
+        <div class="side-section">
+          <div class="side-title">
+            <span>Saved</span>
+            <span>12</span>
+          </div>
+          <div class="cat">Writing queue <span class="cat-count">7</span></div>
+          <div class="cat">Read later <span class="cat-count">5</span></div>
+        </div>
+
+        <div class="side-section">
+          <div class="side-title">
+            <span>Shortcuts</span>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2;">
+            <div><span class="kbd">J</span> <span class="kbd">K</span> Navigate</div>
+            <div><span class="kbd">S</span> Save to queue</div>
+            <div><span class="kbd">E</span> Expand insight</div>
+            <div><span class="kbd">D</span> Generate draft</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Feed -->
+      <section class="feed">
+        <div class="feed-masthead">
+          <div>
+            <div class="feed-date">Vol. IV · Issue 112 · Artificial Intelligence</div>
+            <h1 class="feed-h1">The <em>morning</em> edit.</h1>
+          </div>
+          <div class="feed-meta">
+            14 stories<br />
+            updated 3 min ago<br />
+            <span style="color: var(--accent);">● live</span>
+          </div>
+        </div>
+
+        <!-- Story 1 -->
+        <article class="story">
+          <div class="story-num">01</div>
+          <div class="story-body">
+            <div class="story-meta">
+              <span class="story-source">OpenAI Blog</span>
+              <span>·</span>
+              <span>2 hr ago</span>
+              <span>·</span>
+              <span>4 min read</span>
+            </div>
+            <h2 class="story-title">GPT-5 launches with native reasoning and <em>10× cheaper</em> inference.</h2>
+            <p class="story-dek">The new flagship model ships with built-in chain-of-thought, agentic tool use, and a pricing model that undercuts Claude and Gemini for most workloads. Early benchmarks show a 32% lift on long-context reasoning.</p>
+            <div class="story-foot">
+              <span class="chip hot"><span class="chip-dot"></span>Trending</span>
+              <span class="chip">AI · Models</span>
+              <span class="chip">Bookmark <span class="kbd" style="border-color: currentColor;">S</span></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Story 2 -->
+        <article class="story">
+          <div class="story-num">02</div>
+          <div class="story-body">
+            <div class="story-meta">
+              <span class="story-source">TechCrunch</span>
+              <span>·</span>
+              <span>5 hr ago</span>
+              <span>·</span>
+              <span>3 min read</span>
+            </div>
+            <h2 class="story-title">Vercel acquires v0-design, betting on <em>AI-native</em> frontends.</h2>
+            <p class="story-dek">The deal folds a specialist design-to-code studio into v0, adding component intelligence and brand-aware generation. Industry reads: the commoditization of frontend labour is now explicit strategy.</p>
+            <div class="story-foot">
+              <span class="chip rise"><span class="chip-dot"></span>Rising</span>
+              <span class="chip">Startups · Tooling</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Story 3 -->
+        <article class="story">
+          <div class="story-num">03</div>
+          <div class="story-body">
+            <div class="story-meta">
+              <span class="story-source">Stratechery</span>
+              <span>·</span>
+              <span>8 hr ago</span>
+              <span>·</span>
+              <span>12 min read</span>
+            </div>
+            <h2 class="story-title">The quiet death of the <em>SaaS seat</em> — usage is eating subscription.</h2>
+            <p class="story-dek">Ben Thompson argues that LLM-priced APIs are retraining buyers to expect metered pricing, putting existential pressure on per-seat SaaS incumbents who can't convert without cannibalising margin.</p>
+            <div class="story-foot">
+              <span class="chip cool"><span class="chip-dot"></span>Cooling</span>
+              <span class="chip">Business · SaaS</span>
+            </div>
+          </div>
+        </article>
+
+        <div class="ribbon">
+          <span>Showing 3 of 14</span>
+          <span>Press <span class="kbd">→</span> for more</span>
+        </div>
+      </section>
+
+      <!-- Insight panel -->
+      <aside class="insight">
+        <div class="insight-eyebrow">Insight · Story 01</div>
+        <h2 class="insight-title">GPT-5 launches with native reasoning and 10× cheaper inference.</h2>
+
+        <div class="block">
+          <div class="block-label">Summary</div>
+          <ul class="bullets">
+            <li>First OpenAI model with reasoning baked into the base weights — no separate "o-series" branch.</li>
+            <li>Input pricing drops to $0.50 / 1M tokens; output $2.00 / 1M. Roughly 10× cheaper than GPT-4o on most jobs.</li>
+            <li>Agentic tool use is native — function calling, browsing, and code execution in a single graph.</li>
+          </ul>
+        </div>
+
+        <div class="block">
+          <div class="block-label">Why it matters</div>
+          <div class="pullquote">"This isn't a model release — it's a repricing of intelligence. Every AI startup's cost structure changed overnight."</div>
+        </div>
+
+        <div class="block">
+          <div class="takeaway">
+            <div class="block-label">Key takeaway</div>
+            If your product is a GPT-4 wrapper, you have 30 days to justify your margin or ship something only a reasoning-native model can do.
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">Article ideas · for you</div>
+          <div class="ideas">
+            <div class="idea">
+              <div class="idea-num">i.</div>
+              <div class="idea-title">Why GPT-5 just killed half the AI startup pitch decks</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">ii.</div>
+              <div class="idea-title">The real cost of intelligence, in three charts</div>
+              <div class="idea-go">→</div>
+            </div>
+            <div class="idea">
+              <div class="idea-num">iii.</div>
+              <div class="idea-title">I rebuilt my side project on GPT-5 in an afternoon</div>
+              <div class="idea-go">→</div>
+            </div>
+          </div>
+          <button class="draft-btn">Generate full draft →</button>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

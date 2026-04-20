@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Signal UI — Soft Neobrutalism design tokens
+   Source of truth: docs/DESIGN_SYSTEM.md
+   ============================================================ */
+
+:root {
+  /* Surfaces & ink */
+  --bg: #fff8ee;
+  --bg-2: #fff3e0;
+  --ink: #0e0e0e;
+  --ink-2: #2a2a2a;
+  --muted: #5a5a5a;
+
+  /* Pastel fills */
+  --peach: #ffb99a;
+  --lemon: #fde871;
+  --mint: #baf7c9;
+  --sky: #aee3ff;
+  --lavender: #d6c7ff;
+  --pink: #ffc2d9;
+
+  /* Semantic signals */
+  --hot: #ff5a5f;
+  --rise: #22c55e;
+  --cool: #5b8def;
+
+  /* Radii */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-pill: 999px;
+
+  /* Shadows — always offset, never blurred */
+  --sh-xs: 2px 2px 0 0 var(--ink);
+  --sh-sm: 3px 3px 0 0 var(--ink);
+  --sh-md: 4px 4px 0 0 var(--ink);
+  --sh-lg: 5px 5px 0 0 var(--ink);
+  --sh-xl: 7px 7px 0 0 var(--ink);
+  --sh-2xl: 10px 10px 0 0 var(--ink);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-swift:  cubic-bezier(0.22, 1, 0.36, 1);
+
+  --d-instant: 80ms;
+  --d-fast: 140ms;
+  --d-base: 260ms;
+  --d-slow: 420ms;
+  --d-reveal: 520ms;
+  --d-showcase: 600ms;
+
+  /* Border weights */
+  --bw-1: 1.5px;
+  --bw-2: 2px;
+  --bw-3: 2.5px;
+
+  /* Layout */
+  --nav-h: 68px;
+  --sidebar-w: 280px;
+  --sidebar-rail-w: 68px;
+  --insight-w: 420px;
+  --insight-rail-w: 60px;
+  --gap-lg: 24px;
+}
+
+/* Tailwind v4 theme bridge — lets `bg-ink`, `text-peach`, `shadow-lg-brick` etc work */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+
+  --color-peach: var(--peach);
+  --color-lemon: var(--lemon);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --color-lavender: var(--lavender);
+  --color-pink: var(--pink);
+
+  --color-hot: var(--hot);
+  --color-rise: var(--rise);
+  --color-cool: var(--cool);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-pill: var(--r-pill);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Custom shadow utilities: shadow-brick-sm, shadow-brick-md, etc. */
+  --shadow-brick-xs: var(--sh-xs);
+  --shadow-brick-sm: var(--sh-sm);
+  --shadow-brick-md: var(--sh-md);
+  --shadow-brick-lg: var(--sh-lg);
+  --shadow-brick-xl: var(--sh-xl);
+  --shadow-brick-2xl: var(--sh-2xl);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-space-grotesk), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--lemon);
+  color: var(--ink);
+}
+
+/* ============================================================
+   Keyframe library — the Signal motion vocabulary
+   ============================================================ */
+@keyframes stampIn {
+  0%   { opacity: 0; transform: translateY(-14px) scale(0.65) rotate(-8deg); }
+  60%  { opacity: 1; transform: translateY(3px) scale(1.08) rotate(3deg); }
+  80%  {              transform: translateY(-1px) scale(0.98) rotate(-1deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+
+@keyframes slideInRight {
+  0%   { opacity: 0; transform: translateX(30px) scale(0.9); }
+  60%  { opacity: 1; transform: translateX(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes slideInLeft {
+  0%   { opacity: 0; transform: translateX(-30px) scale(0.9); }
+  60%  { opacity: 1; transform: translateX(4px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes popUp {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.8); }
+  70%  { transform: translateY(2px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes buttonThump {
+  0%   { transform: scale(1) rotate(0); box-shadow: var(--sh-sm); }
+  40%  { transform: scale(0.9) rotate(-6deg); box-shadow: 1px 1px 0 0 var(--ink); }
+  70%  { transform: scale(1.1) rotate(4deg); box-shadow: var(--sh-lg); }
+  100% { transform: scale(1) rotate(0); box-shadow: var(--sh-sm); }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-1.2deg); }
+  75% { transform: rotate(1deg); }
+}
+
+@keyframes chevronFlip {
+  0%   { transform: rotate(0) scale(1); }
+  50%  { transform: rotate(90deg) scale(0.6); }
+  100% { transform: rotate(180deg) scale(1); }
+}
+
+@keyframes shadowPulse {
+  0%   { box-shadow: var(--sh-lg); }
+  50%  { box-shadow: var(--sh-2xl); }
+  100% { box-shadow: var(--sh-lg); }
+}
+
+/* ============================================================
+   Primitive utilities
+   A small set of hand-written classes for the "brick grammar".
+   Component-level styling should compose these + Tailwind.
+   ============================================================ */
+
+.brick {
+  border: var(--bw-3) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: #ffffff;
+  box-shadow: var(--sh-lg);
+}
+
+.brick-flat {
+  border: var(--bw-3) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: #ffffff;
+}
+
+.brick-inverted {
+  border: var(--bw-3) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--sh-lg);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: var(--bw-3) solid var(--ink);
+  border-radius: var(--r-md);
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: var(--sh-sm);
+  cursor: pointer;
+  transition:
+    transform var(--d-instant) var(--ease-swift),
+    box-shadow var(--d-instant) var(--ease-swift),
+    background-color var(--d-fast) var(--ease-swift);
+}
+.btn:hover  { transform: translate(-1px, -1px); box-shadow: var(--sh-md); }
+.btn:active { transform: translate(1px, 1px);   box-shadow: var(--sh-xs); }
+.btn-primary { background: var(--peach); }
+.btn-accent  { background: var(--hot); color: #ffffff; }
+.btn-ghost   { background: transparent; box-shadow: none; }
+.btn-ghost:hover { transform: translate(-1px, -1px); box-shadow: var(--sh-xs); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: var(--bw-2) solid var(--ink);
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  background: #ffffff;
+}
+
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: var(--bw-2) solid var(--ink);
+  border-radius: var(--r-pill);
+  box-shadow: var(--sh-xs);
+  font-size: 11px;
+  font-weight: 700;
+  transform: rotate(-1.2deg);
+}
+.sticker-hot  { background: var(--hot); color: #ffffff; }
+.sticker-rise { background: var(--mint); }
+.sticker-cool { background: var(--sky); }
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: var(--bw-2) solid var(--ink);
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  box-shadow: var(--sh-xs);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: var(--bw-3) solid var(--ink);
+  border-radius: var(--r-md);
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--d-instant) var(--ease-swift),
+    box-shadow var(--d-instant) var(--ease-swift);
+}
+.tab:hover  { transform: translate(-1px, -1px); box-shadow: var(--sh-xs); }
+.tab[data-active="true"] { background: var(--ink); color: var(--bg); }
+
+.label-eyebrow {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ============================================================
+   Scrollbar — chunky, neobrutalist, only on opt-in panes
+   ============================================================ */
+.pane-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+.pane-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.pane-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.pane-scroll::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+}
+.pane-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-2);
+}
+
+/* ============================================================
+   Accessibility — respect user preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

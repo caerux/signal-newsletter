@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Signal — Design Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0f;
+        --fg: #ededf2;
+        --muted: #9898a6;
+        --line: rgba(255, 255, 255, 0.08);
+        --accent: #7c8cff;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+      body { min-height: 100vh; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 72px 32px 120px; }
+      .eyebrow { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+      h1 { font-family: Fraunces, serif; font-weight: 500; font-size: clamp(44px, 6vw, 72px); line-height: 0.98; letter-spacing: -0.02em; margin: 14px 0 18px; }
+      h1 em { font-style: italic; color: var(--accent); }
+      .lede { font-size: 18px; line-height: 1.55; color: #c8c8d4; max-width: 640px; margin: 0 0 56px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+      a.card { text-decoration: none; color: inherit; border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: #111119; display: flex; flex-direction: column; gap: 18px; min-height: 220px; transition: transform 120ms ease, border-color 120ms ease; position: relative; overflow: hidden; }
+      a.card:hover { transform: translateY(-2px); border-color: rgba(124, 140, 255, 0.4); }
+      .num { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
+      .title { font-family: Fraunces, serif; font-weight: 500; font-size: 24px; line-height: 1.1; letter-spacing: -0.01em; }
+      .desc { font-size: 13.5px; line-height: 1.55; color: #a8a8b5; }
+      .go { margin-top: auto; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+      .swatch { position: absolute; inset: auto 0 0 0; height: 4px; }
+      .footer { margin-top: 72px; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="eyebrow">Signal // Design Explorer</div>
+      <h1>Pick the <em>feel</em> of your news intelligence tool.</h1>
+      <p class="lede">
+        Five distinct directions, same content in each. Click through, see which one makes you want to open Signal at 7am with coffee. We'll build the real system on the one you pick.
+      </p>
+
+      <div class="grid">
+        <a class="card" href="01-editorial-brutalist.html">
+          <div class="num">01</div>
+          <div class="title">Editorial Brutalist</div>
+          <div class="desc">Serif display headlines, mono accents, asymmetric grid, raw rules. Ink-on-paper newsroom energy. FT meets Are.na.</div>
+          <div class="go">Open →</div>
+          <div class="swatch" style="background: linear-gradient(90deg, #f5f1e8 0%, #1a1a1a 100%);"></div>
+        </a>
+
+        <a class="card" href="02-terminal-cyber.html">
+          <div class="num">02</div>
+          <div class="title">Terminal Cyber</div>
+          <div class="desc">Mono-first, CRT glow, scanlines, neon on near-black. Keyboard-driven, hacker-zine aesthetic. Linear's evil twin.</div>
+          <div class="go">Open →</div>
+          <div class="swatch" style="background: linear-gradient(90deg, #050a05 0%, #39ff88 100%);"></div>
+        </a>
+
+        <a class="card" href="03-neo-print-magazine.html">
+          <div class="num">03</div>
+          <div class="title">Neo Print Magazine</div>
+          <div class="desc">Warm off-white, deep ink, big serifs, pull quotes. Colored chips for signals. The Browser meets Readwise.</div>
+          <div class="go">Open →</div>
+          <div class="swatch" style="background: linear-gradient(90deg, #f4ede0 0%, #c2410c 60%, #1a1512 100%);"></div>
+        </a>
+
+        <a class="card" href="04-soft-neobrutalism.html">
+          <div class="num">04</div>
+          <div class="title">Soft Neobrutalism</div>
+          <div class="desc">Pastel blocks, thick borders, hard drop shadows. Playful stickers for Trending/Rising/Cooling. Gumroad energy.</div>
+          <div class="go">Open →</div>
+          <div class="swatch" style="background: linear-gradient(90deg, #ffd6a5 0%, #caffbf 50%, #bdb2ff 100%);"></div>
+        </a>
+
+        <a class="card" href="05-bento-glass-dark.html">
+          <div class="num">05</div>
+          <div class="title">Bento Glass Dark</div>
+          <div class="desc">Dark-first bento grid, selective frosted glass, electric blue accent. Closest to your current doc.</div>
+          <div class="go">Open →</div>
+          <div class="swatch" style="background: linear-gradient(90deg, #0a0a0f 0%, #3b82f6 100%);"></div>
+        </a>
+      </div>
+
+      <div class="footer">Signal = Where ideas start.</div>
+    </div>
+  </body>
+</html>
