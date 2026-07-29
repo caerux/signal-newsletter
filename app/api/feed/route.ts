@@ -45,7 +45,18 @@ export async function GET(req: NextRequest) {
     .range(offset, offset + limit - 1);
 
   if (category) {
-    query = query.eq("categories.slug", category);
+    // Resolve slug → id first; Supabase JS can't filter on joined columns
+    const { data: catRow } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", category)
+      .single();
+    if (catRow) {
+      query = query.eq("category_id", catRow.id);
+    } else {
+      // Unknown slug — return empty
+      return NextResponse.json({ articles: [], total: 0 });
+    }
   }
   if (signal && VALID_SIGNALS.includes(signal)) {
     query = query.eq("signal_tier", signal);

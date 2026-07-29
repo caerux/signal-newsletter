@@ -383,8 +383,78 @@ const STATUS_FILL: Record<Draft["status"], Fill> = {
   ready: "mint",
 };
 
-function DraftsList({ drafts, onNew }: { drafts: Draft[]; onNew: () => void }) {
+function DraftMenu({ id, onDeleted }: { id: string; onDeleted: () => void }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  async function handleDelete() {
+    setOpen(false);
+    if (!confirm("Delete this draft? This can't be undone.")) return;
+    await fetch(`/api/drafts/${id}`, { method: "DELETE" });
+    onDeleted();
+  }
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="grid place-items-center"
+        style={{ width: 30, height: 30, borderRadius: "var(--r-sm)", background: open ? "var(--ink)" : "#ffffff", color: open ? "var(--bg)" : "inherit", border: "var(--bw-2) solid var(--ink)", boxShadow: "var(--sh-xs)", cursor: "pointer" }}
+        title="More options"
+      >
+        <MoreHorizontal size={14} strokeWidth={2.5} />
+      </button>
+
+      {open && (
+        <>
+          {/* Click-away overlay */}
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div
+            className="absolute right-0 top-8 z-20 flex flex-col overflow-hidden"
+            style={{ minWidth: 150, background: "#fff", border: "2px solid var(--ink)", borderRadius: "var(--r-md)", boxShadow: "var(--sh-md)" }}
+          >
+            {[
+              { label: "Open", action: () => { setOpen(false); router.push(`/drafts/${id}`); } },
+              { label: "Continue writing", action: () => { setOpen(false); router.push(`/drafts/${id}`); } },
+              { label: "Delete", action: handleDelete, danger: true },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.action}
+                className="flex items-center px-3 py-2 text-left text-[13px] font-semibold"
+                style={{
+                  color: item.danger ? "var(--hot)" : "var(--ink)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  borderTop: item.danger ? "2px dashed rgba(14,14,14,0.15)" : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = item.danger ? "#fff0f0" : "var(--lemon)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DraftsList({ drafts: initialDrafts, onNew }: { drafts: Draft[]; onNew: () => void }) {
+  const router = useRouter();
+  const [drafts, setDrafts] = useState(initialDrafts);
+
+  // sync when parent re-fetches
+  useEffect(() => { setDrafts(initialDrafts); }, [initialDrafts]);
+
+  function removeDraft(id: string) {
+    setDrafts((prev) => prev.filter((d) => d.id !== id));
+  }
+
   if (drafts.length === 0) {
     return (
       <Brick className="p-10 text-center">
@@ -415,9 +485,7 @@ function DraftsList({ drafts, onNew }: { drafts: Draft[]; onNew: () => void }) {
             <Chip fill={STATUS_FILL[d.status]} style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
               {d.status}
             </Chip>
-            <button type="button" className="grid place-items-center" style={{ width: 30, height: 30, borderRadius: "var(--r-sm)", background: "#ffffff", border: "var(--bw-2) solid var(--ink)", boxShadow: "var(--sh-xs)" }} title="More" onClick={(e) => e.stopPropagation()}>
-              <MoreHorizontal size={14} strokeWidth={2.5} />
-            </button>
+            <DraftMenu id={d.id} onDeleted={() => removeDraft(d.id)} />
           </div>
           <h2 className="font-display font-bold text-[24px] leading-[1.2] mb-3" style={{ letterSpacing: "-0.015em" }}>
             {d.title}

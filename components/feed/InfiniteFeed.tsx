@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -43,58 +43,66 @@ type Props = {
 };
 
 export function InfiniteFeed({ initialArticles, category }: Props) {
-  const [articles, setArticles] = useState<(FeedArticle | ApiArticle)[]>(
-    category ? [] : initialArticles
-  );
-  const [offset, setOffset] = useState(category ? 0 : initialArticles.length);
-  const [hasMore, setHasMore] = useState(true);
+  const [articles, setArticles] = useState<(FeedArticle | ApiArticle)[]>(initialArticles);
+  const [offset, setOffset] = useState(initialArticles.length);
+  const [hasMore, setHasMore] = useState(initialArticles.length >= PAGE_SIZE);
   const [loading, setLoading] = useState(false);
 
-  // When category changes, reset and re-fetch from scratch
-  useEffect(() => {
-    if (category === undefined) return; // initial mount handled above
-    setArticles([]);
-    setOffset(0);
-    setHasMore(true);
-  }, [category]);
+  // Use refs to avoid stale closures in async fetch
+  const loadingRef = useRef(false);
+  const categoryRef = useRef(category);
+  const isFirstRender = useRef(true);
 
-  const loadMore = useCallback(async (currentOffset: number) => {
-    if (loading) return;
+  async function fetchPage(pageOffset: number, cat: string | null | undefined) {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
-        offset: String(currentOffset),
+        offset: String(pageOffset),
       });
-      if (category) params.set("category", category);
+      if (cat) params.set("category", cat);
       const res = await fetch(`/api/feed?${params}`);
-      const json = (await res.json()) as { articles: ApiArticle[]; total: number };
-      if (!json.articles?.length) {
-        setHasMore(false);
-        return;
-      }
-      setArticles((prev) => (currentOffset === 0 ? json.articles : [...prev, ...json.articles]));
-      setOffset(currentOffset + json.articles.length);
-      if (json.articles.length < PAGE_SIZE) setHasMore(false);
+      const json = (await res.json()) as { articles: ApiArticle[] };
+      const next = json.articles ?? [];
+      setArticles((prev) => (pageOffset === 0 ? next : [...prev, ...next]));
+      setOffset(pageOffset + next.length);
+      setHasMore(next.length >= PAGE_SIZE);
     } catch {
       setHasMore(false);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [loading, category]);
+  }
 
-  // Trigger initial load when category is set and articles are empty
+  // When category filter changes, reset and re-fetch
   useEffect(() => {
-    if (articles.length === 0 && hasMore && !loading) {
-      loadMore(0);
+    categoryRef.current = category;
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      // On first mount with no category, we already have SSR initialArticles
+      if (!category) return;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articles.length, hasMore]);
+
+    // Category changed — reset list and fetch page 0
+    setArticles([]);
+    setOffset(0);
+    setHasMore(true);
+    fetchPage(0, category);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
 
   const { ref } = useInView({
     threshold: 0,
-    rootMargin: "200px",
-    onChange: (inView) => { if (inView && articles.length > 0) loadMore(offset); },
+    rootMargin: "300px",
+    onChange: (inView) => {
+      if (inView && !loadingRef.current && hasMore) {
+        fetchPage(offset, categoryRef.current);
+      }
+    },
   });
 
   const stories = articles.map(toStory);
@@ -105,22 +113,17 @@ export function InfiniteFeed({ initialArticles, category }: Props) {
         <StoryCard key={s.id} story={s} index={i} />
       ))}
 
-      {/* Sentinel */}
       <div ref={ref} className="h-2" />
 
       {loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex justify-center py-6"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center py-6">
           <Loader2 size={20} className="animate-spin text-muted" />
         </motion.div>
       )}
 
-      {!hasMore && articles.length > PAGE_SIZE && (
+      {!hasMore && articles.length > 0 && !loading && (
         <p className="text-center font-mono text-[11px] font-bold tracking-widest text-muted py-6">
-          YOU&apos;VE REACHED THE END
+          {articles.length} ARTICLES · END OF FEED
         </p>
       )}
     </section>
