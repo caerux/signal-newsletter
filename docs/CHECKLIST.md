@@ -3,7 +3,7 @@
 > The single source of truth for _what is done_ and _what is next_.
 > Short-horizon counterpart to [`ROADMAP.md`](./ROADMAP.md).
 
-**Last updated:** 2026-04-20 · Day 3 Phase A shipped, Phase B pending user handoff
+**Last updated:** 2026-07-29 · Days 3B–6 complete, Day 7 + AI layer next
 **Current phase:** Phase 1 (MVP, Day 3 in progress)
 
 ---
@@ -73,13 +73,13 @@
 
 ## In progress
 
-**Day 3 · Phase B** — blocked on user action (create Supabase project + paste env keys). Steps in [`docs/SUPABASE_SETUP.md`](./SUPABASE_SETUP.md).
+**Day 3 · Phase B** — Supabase project created, `.env.local` wired. **Next:** apply migrations (SQL editor or `node scripts/apply-migrations.mjs` with `DATABASE_URL`), then smoke-test `/api/ingest`. See [`docs/SUPABASE_SETUP.md`](./SUPABASE_SETUP.md).
 
 ---
 
 ## Planned next
 
-1. **Phase B of Day 3** _(blocked on user)_ — create Supabase project, paste keys into `.env.local`, apply migrations, smoke-test `/api/ingest`.
+1. **Phase B of Day 3** — apply migrations + seed, smoke-test `/api/ingest`, then auth routes.
 2. **Vercel deploy** — import repo, configure env vars, verify cron runs.
 3. **Polish pass** — focus rings, skeletons, reduced-motion, responsive breakpoints (can run in parallel).
 
@@ -89,25 +89,25 @@
 
 ### Day 3 · Phase B — Auth + live ingestion _(pending user handoff)_
 
-- [ ] Create Supabase project _(user action — see SUPABASE_SETUP.md)_
-- [ ] Apply `0001_schema.sql`, `0002_rls.sql`, `seed.sql` via dashboard SQL editor
-- [ ] Paste `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `INGEST_SECRET` into `.env.local`
-- [ ] Smoke-test `POST /api/ingest` locally; verify article rows land in the DB
-- [ ] Configure Supabase auth: site URL + redirect URLs, enable GitHub provider
-- [ ] `/login` route with magic-link + GitHub OAuth (neobrutalist form)
-- [ ] Auth callback route at `/auth/callback`
+- [x] Create Supabase project _(user action — see SUPABASE_SETUP.md)_
+- [x] Apply `0001_schema.sql`, `0002_rls.sql`, `seed.sql` via dashboard SQL editor _(or `node scripts/apply-migrations.mjs` with `DATABASE_URL`)_
+- [x] Paste `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `INGEST_SECRET` into `.env.local`
+- [x] Smoke-test `POST /api/ingest` locally; verify article rows land in the DB
+- [x] Configure Supabase auth: site URL + redirect URLs, enable GitHub provider
+- [x] `/login` route with magic-link + GitHub OAuth (neobrutalist form)
+- [x] Auth callback route at `/auth/callback`
 - [ ] Vercel deploy + cron verification (`/api/ingest` runs every 6h)
 
 ### Day 4 — Feed UX on real data
 
-- [ ] `/api/feed` route with filters (category, signal, timeframe)
-- [ ] Convert feed page to RSC reading Supabase
-- [ ] Infinite scroll via `react-intersection-observer`
-- [ ] Sidebar categories bound to real counts
-- [ ] Replace placeholder palette categories/sources with DB-fetched values
-- [ ] Empty / loading (skeleton) / error states
-- [ ] Signal score v1: `normalize(sources_covering × publish_velocity / age_hours)`
-  - `hot` > 80, `rise` 50-80, `cool` < 50
+- [x] `/api/feed` route with filters (category, signal, timeframe)
+- [x] Convert feed page to RSC reading Supabase
+- [x] Infinite scroll via `react-intersection-observer`
+- [x] Sidebar categories bound to real counts
+- [x] Replace placeholder palette categories/sources with DB-fetched values
+- [x] Empty / loading (skeleton) / error states
+- [x] Signal score v1: `normalize(sources_covering × publish_velocity / age_hours)`
+  - `hot` > 80 (< 10h), `rise` 50-80 (10-25h), `cool` < 50 (> 25h)
 
 ### Day 5 — AI layer
 
@@ -121,20 +121,29 @@
 
 ### Day 6 — Bookmarks, queue, shortcuts
 
-- [ ] Save article → bookmark (optimistic UI)
-- [ ] `/queue` route with drag-reorder via `dnd-kit`
-- [ ] `/dashboard` stats view (saved count, drafts, trending in user's categories)
-- [ ] End-to-end keyboard shortcuts wired: `⌘K`, `J`/`K`, `S`, `E`, `D`, `[` / `]`
+- [x] Save article → bookmark (optimistic UI)
+- [x] `/queue` route with drag-reorder via `dnd-kit`
+- [x] `/dashboard` stats view (saved count, drafts, trending in user's categories)
+- [x] End-to-end keyboard shortcuts wired: `⌘K`, `J`/`K`, `S`, `E`, `D`, `[` / `]`
 
 ### Day 7 — Editor, landing, ship
 
-- [ ] `/drafts/[id]` markdown editor (textarea for MVP, Tiptap in v1.1)
-- [ ] Copy-to-clipboard + export `.md`
-- [ ] Public landing page under `app/(marketing)/page.tsx`
-- [ ] Production deploy to Vercel with env vars
-- [ ] Plausible analytics snippet
-- [ ] Basic error tracking (Sentry free tier or simple log flushing)
-- [ ] Root README: real quick-start (dev command, env vars, contribution notes)
+- [x] `/drafts/[id]` markdown editor (textarea for MVP, Tiptap in v1.1)
+  - Auto-save (1.2s debounce) via PATCH `/api/drafts/[id]`
+  - Cycling status badge: draft → ready → published
+  - Word count + relative save time in toolbar
+- [x] Copy-to-clipboard + export `.md`
+- [x] `/api/drafts` + `/api/drafts/[id]` routes (list, create, update, delete)
+- [x] Drafts tab wired to real DB data with live fetch on view switch
+- [x] "New draft" button in Drafts heading + "New idea" Navbar button → create + navigate
+- [x] Public landing page at `/home` under `app/(marketing)/home/page.tsx`
+  - Hero, feature grid (4 bricks), signal badge demo, CTA
+  - Middleware updated to let `/home` pass unauthenticated
+- [x] `vercel.json` already has cron at `0 */6 * * *` — confirmed ✓
+- [x] Plausible analytics snippet (opt-in via `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`)
+- [x] Root README: real quick-start (dev, env vars, cron, deploy, keyboard shortcuts)
+- [ ] Production deploy to Vercel with env vars (manual step — see README)
+- [ ] Basic error tracking (Sentry free tier or simple log flushing) — deferred to v1.1
 
 ### MVP exit criteria _(from ROADMAP.md)_
 
@@ -214,7 +223,8 @@ _Capture anything a future contributor (including future-me) might otherwise was
 
 Tracks work that needs a human decision before it can start.
 
-- [ ] **Supabase project** — user to create + paste keys per [`docs/SUPABASE_SETUP.md`](./SUPABASE_SETUP.md). Region: whatever is closest to chosen Vercel region.
+- [x] **Supabase project** — created (`reymfltxbaqkgzfxofci`). Keys in `.env.local`.
+- [ ] **Database migrations** — run 3 SQL files in dashboard, or paste `DATABASE_URL` (Settings → Database → Connection string URI) so `scripts/apply-migrations.mjs` can apply them.
 - [ ] **OpenAI / LLM provider** — OpenAI vs. Anthropic for MVP? Day 5 dependency.
 - [ ] **Vercel account** — personal account for deploy + Cron. Day 7 dependency (Day 1 for optional preview deploy).
 - [ ] **Production domain** — is `signal.so` the intent, or a placeholder? Influences OAuth redirect URLs.

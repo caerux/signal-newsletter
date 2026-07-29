@@ -5,6 +5,8 @@ import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 import { InsightPanel } from "./InsightPanel";
 import { ViewProvider } from "./view-context";
+import { BookmarkProvider } from "./bookmark-context";
+import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { CommandPalette } from "./CommandPalette";
 
 type Collapse = { sb: boolean; ip: boolean };
@@ -26,35 +28,11 @@ function readInitial(): Collapse {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<Collapse>({ sb: false, ip: false });
 
-  useEffect(() => {
-    setState(readInitial());
-  }, []);
+  useEffect(() => { setState(readInitial()); }, []);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* ignore */
-    }
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }, [state]);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
-      if (target?.isContentEditable) return;
-
-      if (e.key === "[") {
-        e.preventDefault();
-        setState((s) => ({ ...s, sb: !s.sb }));
-      } else if (e.key === "]") {
-        e.preventDefault();
-        setState((s) => ({ ...s, ip: !s.ip }));
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   const toggleSidebar = () => setState((s) => ({ ...s, sb: !s.sb }));
   const toggleInsight = () => setState((s) => ({ ...s, ip: !s.ip }));
@@ -64,28 +42,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ViewProvider>
-      <div className="h-screen flex flex-col bg-bg text-ink">
-        <Navbar />
-        <div
-          className="grid flex-1 min-h-0 px-6 py-6"
-          style={{
-            gridTemplateColumns: `${sidebarCol} 1fr ${insightCol}`,
-            gap: "var(--gap-lg)",
-            transition:
-              "grid-template-columns var(--d-slow) var(--ease-spring)",
-          }}
-        >
-          <Sidebar collapsed={state.sb} onToggle={toggleSidebar} />
-          <main className="pane-scroll min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-2 pb-2">
-            {children}
-          </main>
-          <InsightPanel collapsed={state.ip} onToggle={toggleInsight} />
+      <BookmarkProvider>
+        <KeyboardShortcuts onToggleSidebar={toggleSidebar} onToggleInsight={toggleInsight} />
+        <div className="h-screen flex flex-col bg-bg text-ink">
+          <Navbar />
+          <div
+            className="grid flex-1 min-h-0 px-6 py-6"
+            style={{
+              gridTemplateColumns: `${sidebarCol} 1fr ${insightCol}`,
+              gap: "var(--gap-lg)",
+              transition: "grid-template-columns var(--d-slow) var(--ease-spring)",
+            }}
+          >
+            <Sidebar collapsed={state.sb} onToggle={toggleSidebar} />
+            <main className="pane-scroll min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-2 pb-2">
+              {children}
+            </main>
+            <InsightPanel collapsed={state.ip} onToggle={toggleInsight} />
+          </div>
         </div>
-      </div>
-      <CommandPalette
-        onToggleSidebar={toggleSidebar}
-        onToggleInsight={toggleInsight}
-      />
+        <CommandPalette onToggleSidebar={toggleSidebar} onToggleInsight={toggleInsight} />
+      </BookmarkProvider>
     </ViewProvider>
   );
 }

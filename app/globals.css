@@ -185,6 +185,12 @@ html, body {
   box-shadow: var(--sh-lg);
 }
 
+/* Keyboard-navigation focus ring */
+[data-article-card][data-focused="true"] {
+  outline: 3px solid var(--cool);
+  outline-offset: 2px;
+}
+
 .brick-flat {
   border: var(--bw-3) solid var(--ink);
   border-radius: var(--r-lg);

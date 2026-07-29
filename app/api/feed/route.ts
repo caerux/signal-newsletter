@@ -1,25 +1,17 @@
+import "server-only";
+import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { FeedViews } from "@/components/feed/FeedViews";
-import type { Fill, Signal } from "@/lib/tokens";
+import type { Signal, Fill } from "@/lib/tokens";
 
-export type FeedArticle = {
-  id: string;
-  title: string;
-  description: string | null;
-  canonical_url: string;
-  published_at: string | null;
-  signal: Signal;
-  source: string;
-  category: string | null;
-  accent: Fill;
-};
+export const dynamic = "force-dynamic";
 
 const VALID_SIGNALS: Signal[] = ["hot", "rise", "cool"];
-const VALID_FILLS: Fill[] = ["peach", "lemon", "mint", "sky", "lavender", "pink"];
+const VALID_FILLS: Fill[] = ["peach", "lemon", "mint", "sky", "lavender", "pink", "white", "bg", "bg-2"];
 
 function toSignal(v: unknown): Signal {
   return VALID_SIGNALS.includes(v as Signal) ? (v as Signal) : "cool";
 }
+
 function toFill(v: unknown): Fill {
   return VALID_FILLS.includes(v as Fill) ? (v as Fill) : "sky";
 }
@@ -32,18 +24,40 @@ function pickFirst<T>(v: T | T[] | null | undefined): T | null {
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
 
-export default async function HomePage() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category");
+  const signal = searchParams.get("signal") as Signal | null;
+  const limit = Math.min(Number(searchParams.get("limit") ?? "30"), 100);
+  const offset = Number(searchParams.get("offset") ?? "0");
+
   const supabase = await createClient();
 
-  const { data } = await supabase
+  let query = supabase
     .from("articles")
     .select(
-      "id, title, description, canonical_url, published_at, signal_tier, sources(name), categories(name, fill, slug)"
+      `id, title, description, canonical_url, published_at, signal_tier,
+       sources(name),
+       categories(name, fill, slug)`,
+      { count: "exact" }
     )
     .order("published_at", { ascending: false })
-    .limit(30);
+    .range(offset, offset + limit - 1);
 
-  const articles: FeedArticle[] = (data ?? []).map((a) => {
+  if (category) {
+    query = query.eq("categories.slug", category);
+  }
+  if (signal && VALID_SIGNALS.includes(signal)) {
+    query = query.eq("signal_tier", signal);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const articles = (data ?? []).map((a) => {
     const src = pickFirst(a.sources as JoinedSource | JoinedSource[] | null);
     const cat = pickFirst(a.categories as JoinedCategory | JoinedCategory[] | null);
     return {
@@ -59,5 +73,5 @@ export default async function HomePage() {
     };
   });
 
-  return <FeedViews initialArticles={articles} />;
+  return NextResponse.json({ articles, total: count ?? 0 });
 }

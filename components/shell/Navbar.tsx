@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Avatar, Button, Chip, Kbd, Tab } from "@/components/ui";
 import { useView, VIEW_LABELS, type AppView } from "./view-context";
 
@@ -8,6 +9,17 @@ const TAB_ORDER: AppView[] = ["feed", "saved", "drafts", "trending"];
 
 export function Navbar() {
   const { view, setView } = useView();
+  const router = useRouter();
+
+  async function handleNewIdea() {
+    const res = await fetch("/api/drafts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Untitled" }),
+    });
+    const json = await res.json() as { id?: string };
+    if (json.id) router.push(`/drafts/${json.id}`);
+  }
 
   return (
     <header
@@ -112,7 +124,7 @@ export function Navbar() {
 
       {/* Right cluster */}
       <div className="flex items-center gap-2">
-        <Button variant="primary">
+        <Button variant="primary" onClick={handleNewIdea}>
           <Sparkles size={14} strokeWidth={2.5} />
           New idea
         </Button>

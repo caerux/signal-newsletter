@@ -2,13 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUpRight,
   Bookmark,
   Flame,
   MoreHorizontal,
   Pencil,
+  Plus,
   TrendingUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Brick,
   Button,
@@ -16,52 +17,28 @@ import {
   Eyebrow,
   Sticker,
 } from "@/components/ui";
-import { FILL_VAR, type Fill, type Signal } from "@/lib/tokens";
+import { FILL_VAR, type Fill } from "@/lib/tokens";
 import { useView, VIEW_LABELS, type AppView } from "@/components/shell/view-context";
+import { relativeTime } from "@/lib/relativeTime";
+import { InfiniteFeed } from "./InfiniteFeed";
+import { StoryCard, type Story } from "./StoryCard";
+import type { FeedArticle } from "@/app/(app)/page";
+import { useState, useEffect } from "react";
 
-type Story = {
-  id: string;
-  eyebrow: string;
-  title: string;
-  dek: string;
-  source: string;
-  time: string;
-  signal: Signal;
-  accent: Fill;
-};
+function articleToStory(a: FeedArticle): Story {
+  return {
+    id: a.id,
+    eyebrow: a.category ?? "Signal",
+    title: a.title,
+    dek: a.description ?? "",
+    source: a.source,
+    time: relativeTime(a.published_at),
+    signal: a.signal,
+    accent: a.accent,
+    url: a.canonical_url,
+  };
+}
 
-const STORIES: Story[] = [
-  {
-    id: "s1",
-    eyebrow: "AI · Infrastructure",
-    title: "The model isn\u2019t the moat anymore",
-    dek: "As weights commoditize, distribution and distribution alone decides who wins. A field guide for builders who missed the memo.",
-    source: "stratechery",
-    time: "2h",
-    signal: "hot",
-    accent: "peach",
-  },
-  {
-    id: "s2",
-    eyebrow: "Markets · Energy",
-    title: "Grid inertia is the new oil reserve",
-    dek: "Utilities quietly bought 40GW of battery capacity this year. The trade isn\u2019t solar \u2014 it\u2019s smoothing.",
-    source: "the-information",
-    time: "5h",
-    signal: "rise",
-    accent: "mint",
-  },
-  {
-    id: "s3",
-    eyebrow: "Design · Tools",
-    title: "Why every design tool is turning into a notebook",
-    dek: "Figma, Linear, Notion \u2014 they\u2019re all chasing the same surface: a canvas you can query.",
-    source: "a16z",
-    time: "9h",
-    signal: "cool",
-    accent: "sky",
-  },
-];
 
 const SAVED: Story[] = [
   {
@@ -73,6 +50,7 @@ const SAVED: Story[] = [
     time: "1d",
     signal: "cool",
     accent: "lavender",
+    url: "#",
   },
   {
     id: "sv2",
@@ -83,6 +61,7 @@ const SAVED: Story[] = [
     time: "2d",
     signal: "rise",
     accent: "mint",
+    url: "#",
   },
 ];
 
@@ -139,8 +118,44 @@ const viewTransition = {
   ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
 };
 
-export function FeedViews() {
+export function FeedViews({ initialArticles = [] }: { initialArticles?: FeedArticle[] }) {
   const { view } = useView();
+  const router = useRouter();
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+
+  useEffect(() => {
+    if (view === "drafts") {
+      fetch("/api/drafts")
+        .then((r) => r.json())
+        .then((json) => {
+          setDrafts(
+            (json.drafts ?? []).map((d: {
+              id: string; title: string; body_md: string;
+              status: string; updated_at: string;
+            }) => ({
+              id: d.id,
+              title: d.title,
+              wordCount: d.body_md.trim() ? d.body_md.trim().split(/\s+/).length : 0,
+              updatedAt: relativeTime(d.updated_at),
+              status: (["idea", "outline", "in-progress", "ready"].includes(d.status)
+                ? d.status
+                : "idea") as Draft["status"],
+            }))
+          );
+        })
+        .catch(() => {});
+    }
+  }, [view]);
+
+  async function createDraft() {
+    const res = await fetch("/api/drafts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Untitled" }),
+    });
+    const json = await res.json() as { id: string };
+    if (json.id) router.push(`/drafts/${json.id}`);
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -151,17 +166,17 @@ export function FeedViews() {
         exit={{ opacity: 0, y: -6 }}
         transition={viewTransition}
       >
-        <ViewHeading view={view} />
-        {view === "feed" && <FeedList stories={STORIES} />}
+        <ViewHeading view={view} onNewDraft={createDraft} />
+        {view === "feed" && <InfiniteFeed initialArticles={initialArticles} />}
         {view === "saved" && <SavedList stories={SAVED} />}
-        {view === "drafts" && <DraftsList drafts={DRAFTS} />}
+        {view === "drafts" && <DraftsList drafts={drafts} onNew={createDraft} />}
         {view === "trending" && <TrendingList items={TRENDING} />}
       </motion.div>
     </AnimatePresence>
   );
 }
 
-function ViewHeading({ view }: { view: AppView }) {
+function ViewHeading({ view, onNewDraft }: { view: AppView; onNewDraft: () => void }) {
   if (view === "feed") {
     return (
       <Brick
@@ -234,94 +249,26 @@ function ViewHeading({ view }: { view: AppView }) {
     <Brick
       fill={fill}
       className="p-6 mb-5"
-      style={{
-        animation: "popUp var(--d-reveal) var(--ease-spring) both",
-      }}
+      style={{ animation: "popUp var(--d-reveal) var(--ease-spring) both" }}
     >
-      <Eyebrow className="block mb-2">{kicker}</Eyebrow>
-      <h1
-        className="font-display font-bold leading-[1.02] mb-2"
-        style={{ fontSize: 38, letterSpacing: "-0.02em" }}
-      >
-        {title}
-      </h1>
-      <p
-        className="max-w-[58ch] text-[14px] leading-[1.55] font-medium"
-        style={{ color: "var(--ink-2)" }}
-      >
-        {dek}
-      </p>
-    </Brick>
-  );
-}
-
-/* ---------- Feed ---------- */
-
-function FeedList({ stories }: { stories: Story[] }) {
-  return (
-    <section className="flex flex-col gap-4">
-      {stories.map((s, i) => (
-        <StoryCard key={s.id} story={s} index={i} />
-      ))}
-    </section>
-  );
-}
-
-function StoryCard({ story, index }: { story: Story; index: number }) {
-  return (
-    <motion.article
-      className="brick p-5 cursor-pointer"
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{
-        duration: 0.42,
-        ease: [0.34, 1.56, 0.64, 1],
-        delay: 0.06 + index * 0.06,
-      }}
-      whileHover={{
-        y: -2,
-        x: -2,
-        transition: { duration: 0.12, ease: [0.22, 1, 0.36, 1] },
-      }}
-      whileTap={{ y: 1, x: 1 }}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <Eyebrow>{story.eyebrow}</Eyebrow>
-        <Sticker kind={story.signal} />
-      </div>
-      <h2
-        className="font-display font-bold leading-[1.15] mb-2"
-        style={{ fontSize: 26, letterSpacing: "-0.015em" }}
-      >
-        {story.title}
-      </h2>
-      <p
-        className="text-[14px] leading-[1.55] font-medium mb-4"
-        style={{ color: "var(--ink-2)", maxWidth: "62ch" }}
-      >
-        {story.dek}
-      </p>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Chip fill={story.accent}>{story.source}</Chip>
-          <span
-            className="font-mono"
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "var(--muted)",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {story.time.toUpperCase()} AGO
-          </span>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Eyebrow className="block mb-2">{kicker}</Eyebrow>
+          <h1 className="font-display font-bold leading-[1.02] mb-2" style={{ fontSize: 38, letterSpacing: "-0.02em" }}>
+            {title}
+          </h1>
+          <p className="max-w-[58ch] text-[14px] leading-[1.55] font-medium" style={{ color: "var(--ink-2)" }}>
+            {dek}
+          </p>
         </div>
-        <Button>
-          Open
-          <ArrowUpRight size={14} strokeWidth={2.5} />
-        </Button>
+        {view === "drafts" && (
+          <Button variant="primary" onClick={onNewDraft} className="flex-shrink-0 mt-1">
+            <Plus size={14} strokeWidth={2.5} />
+            New draft
+          </Button>
+        )}
       </div>
-    </motion.article>
+    </Brick>
   );
 }
 
@@ -379,61 +326,51 @@ const STATUS_FILL: Record<Draft["status"], Fill> = {
   ready: "mint",
 };
 
-function DraftsList({ drafts }: { drafts: Draft[] }) {
-  if (drafts.length === 0) return <Empty label="No drafts yet" />;
+function DraftsList({ drafts, onNew }: { drafts: Draft[]; onNew: () => void }) {
+  const router = useRouter();
+  if (drafts.length === 0) {
+    return (
+      <Brick className="p-10 text-center">
+        <p className="label-eyebrow mb-3">No drafts yet</p>
+        <p className="text-[14px] font-medium mb-4" style={{ color: "var(--muted)" }}>
+          Save articles and turn them into drafts.
+        </p>
+        <Button variant="primary" onClick={onNew}>
+          <Plus size={13} strokeWidth={2.5} />
+          Start a blank draft
+        </Button>
+      </Brick>
+    );
+  }
   return (
     <section className="flex flex-col gap-4">
       {drafts.map((d, i) => (
         <motion.article
           key={d.id}
-          className="brick p-5"
+          className="brick p-5 cursor-pointer"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+          whileHover={{ y: -2, x: -2, transition: { duration: 0.12 } }}
+          onClick={() => router.push(`/drafts/${d.id}`)}
         >
           <div className="flex items-center justify-between mb-3">
-            <Chip
-              fill={STATUS_FILL[d.status]}
-              style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}
-            >
+            <Chip fill={STATUS_FILL[d.status]} style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
               {d.status}
             </Chip>
-            <button
-              type="button"
-              className="grid place-items-center"
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "var(--r-sm)",
-                background: "#ffffff",
-                border: "var(--bw-2) solid var(--ink)",
-                boxShadow: "var(--sh-xs)",
-              }}
-              title="More"
-            >
+            <button type="button" className="grid place-items-center" style={{ width: 30, height: 30, borderRadius: "var(--r-sm)", background: "#ffffff", border: "var(--bw-2) solid var(--ink)", boxShadow: "var(--sh-xs)" }} title="More" onClick={(e) => e.stopPropagation()}>
               <MoreHorizontal size={14} strokeWidth={2.5} />
             </button>
           </div>
-          <h2 className="font-display font-bold text-[24px] leading-[1.2] mb-3"
-              style={{ letterSpacing: "-0.015em" }}>
+          <h2 className="font-display font-bold text-[24px] leading-[1.2] mb-3" style={{ letterSpacing: "-0.015em" }}>
             {d.title}
           </h2>
           <div className="flex items-center gap-4">
-            <span
-              className="font-mono"
-              style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em" }}
-            >
-              {d.wordCount.toLocaleString()} WORDS
-            </span>
-            <span
-              className="font-mono"
-              style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em" }}
-            >
-              · {d.updatedAt.toUpperCase()}
-            </span>
+            <span className="font-mono" style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em" }}>{d.wordCount.toLocaleString()} WORDS</span>
+            <span className="font-mono" style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em" }}>· {d.updatedAt.toUpperCase()} AGO</span>
             <div className="ml-auto flex items-center gap-2">
-              <Button>Open</Button>
-              <Button variant="primary">Continue writing</Button>
+              <Button onClick={(e) => { e.stopPropagation(); router.push(`/drafts/${d.id}`); }}>Open</Button>
+              <Button variant="primary" onClick={(e) => { e.stopPropagation(); router.push(`/drafts/${d.id}`); }}>Continue writing</Button>
             </div>
           </div>
         </motion.article>

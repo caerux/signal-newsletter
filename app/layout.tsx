@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -40,6 +41,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="h-screen overflow-hidden bg-bg text-ink">{children}</body>
+      {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+        <Script
+          defer
+          data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+          src="https://plausible.io/js/script.js"
+        />
+      )}
     </html>
   );
 }

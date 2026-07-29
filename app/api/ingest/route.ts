@@ -82,6 +82,15 @@ async function runIngest(req: NextRequest) {
     },
   });
 
+  // Purge articles older than 30 days to stay within free-tier DB limits.
+  await supabase
+    .from("articles")
+    .delete()
+    .lt(
+      "published_at",
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    );
+
   const started = Date.now();
   const stats = {
     sources_total: sources?.length ?? 0,
@@ -152,6 +161,11 @@ async function runIngest(req: NextRequest) {
         .eq("id", source.id);
     }
   }
+
+  // Refresh signal scores for all articles published in the last 3 days.
+  // Score = 100 − (age_hours × 2), clamped to 0–100.
+  // Tiers: hot > 80 (< 10h old), rise 50–80 (10–25h), cool < 50 (> 25h).
+  await supabase.rpc("refresh_signal_scores" as never);
 
   return NextResponse.json({
     ok: true,

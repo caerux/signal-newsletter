@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   ChevronsLeft,
   Flame,
@@ -15,6 +16,7 @@ import {
 import { Brick, Eyebrow } from "@/components/ui";
 import { FILL_VAR, type Fill } from "@/lib/tokens";
 import { useView } from "./view-context";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   collapsed: boolean;
@@ -27,15 +29,36 @@ type Category = {
   icon: LucideIcon;
   count: number;
   accent: Fill;
+  slug: string;
 };
 
-const CATEGORIES: Category[] = [
-  { id: "trending", label: "Trending", icon: Flame, count: 24, accent: "peach" },
-  { id: "world",    label: "World",    icon: Globe,      count: 18, accent: "sky" },
-  { id: "ai",       label: "AI",       icon: Cpu,        count: 42, accent: "lavender" },
-  { id: "data",     label: "Data",     icon: Database,   count: 11, accent: "mint" },
-  { id: "design",   label: "Design",   icon: Palette,    count: 9,  accent: "pink" },
-  { id: "markets",  label: "Markets",  icon: TrendingUp, count: 15, accent: "lemon" },
+const SLUG_ICON: Record<string, LucideIcon> = {
+  tech: Globe,
+  ai: Cpu,
+  startups: Flame,
+  design: Palette,
+  engineering: Database,
+  business: TrendingUp,
+  culture: TrendingUp,
+};
+
+const SLUG_ACCENT: Record<string, Fill> = {
+  tech: "sky",
+  ai: "lavender",
+  startups: "peach",
+  design: "pink",
+  engineering: "mint",
+  business: "lemon",
+  culture: "peach",
+};
+
+const PLACEHOLDER_CATEGORIES: Category[] = [
+  { id: "tech",        label: "Tech",        icon: Globe,      count: 0, accent: "sky",      slug: "tech" },
+  { id: "ai",          label: "AI",          icon: Cpu,        count: 0, accent: "lavender", slug: "ai" },
+  { id: "startups",    label: "Startups",    icon: Flame,      count: 0, accent: "peach",    slug: "startups" },
+  { id: "design",      label: "Design",      icon: Palette,    count: 0, accent: "pink",     slug: "design" },
+  { id: "engineering", label: "Engineering", icon: Database,   count: 0, accent: "mint",     slug: "engineering" },
+  { id: "business",    label: "Business",    icon: TrendingUp, count: 0, accent: "lemon",    slug: "business" },
 ];
 
 const COLLECTIONS = [
@@ -45,6 +68,35 @@ const COLLECTIONS = [
 
 export function Sidebar({ collapsed, onToggle }: Props) {
   const { setView } = useView();
+  const [categories, setCategories] = useState<Category[]>(PLACEHOLDER_CATEGORIES);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("categories")
+      .select("id, slug, name, fill, sort_order")
+      .order("sort_order")
+      .then(({ data }) => {
+        if (!data?.length) return;
+        // fetch article counts per category in parallel
+        Promise.all(
+          data.map((c) =>
+            supabase
+              .from("articles")
+              .select("id", { count: "exact", head: true })
+              .eq("category_id", c.id)
+              .then(({ count }) => ({
+                id: c.id as string,
+                slug: c.slug as string,
+                label: c.name as string,
+                count: count ?? 0,
+                accent: (SLUG_ACCENT[c.slug as string] ?? "sky") as Fill,
+                icon: SLUG_ICON[c.slug as string] ?? Globe,
+              }))
+          )
+        ).then(setCategories);
+      });
+  }, []);
 
   if (collapsed) {
     return (
@@ -55,7 +107,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         }}
       >
         <CollapseButton collapsed={collapsed} onToggle={onToggle} />
-        {CATEGORIES.map((c, i) => {
+        {categories.map((c, i) => {
           const Icon = c.icon;
           return (
             <button
@@ -95,7 +147,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
       </div>
 
       <ul className="flex flex-col gap-1.5">
-        {CATEGORIES.map((c, i) => {
+        {categories.map((c, i) => {
           const Icon = c.icon;
           return (
             <li

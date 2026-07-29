@@ -32,8 +32,25 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh the session if it's about to expire.
-  await supabase.auth.getUser();
+  // Refresh the session and protect app routes.
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isPublicRoute = pathname === "/home" || pathname.startsWith("/home/");
+  const isAppRoute = !isAuthRoute && !isPublicRoute && !pathname.startsWith("/design-system");
+
+  if (isAppRoute && !user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (isAuthRoute && user) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    return NextResponse.redirect(homeUrl);
+  }
 
   return supabaseResponse;
 }
