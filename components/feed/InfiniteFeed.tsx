@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -39,38 +39,62 @@ const PAGE_SIZE = 30;
 
 type Props = {
   initialArticles: FeedArticle[];
+  category?: string | null;
 };
 
-export function InfiniteFeed({ initialArticles }: Props) {
-  const [articles, setArticles] = useState<(FeedArticle | ApiArticle)[]>(initialArticles);
-  const [offset, setOffset] = useState(initialArticles.length);
-  const [hasMore, setHasMore] = useState(initialArticles.length >= PAGE_SIZE);
+export function InfiniteFeed({ initialArticles, category }: Props) {
+  const [articles, setArticles] = useState<(FeedArticle | ApiArticle)[]>(
+    category ? [] : initialArticles
+  );
+  const [offset, setOffset] = useState(category ? 0 : initialArticles.length);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+  // When category changes, reset and re-fetch from scratch
+  useEffect(() => {
+    if (category === undefined) return; // initial mount handled above
+    setArticles([]);
+    setOffset(0);
+    setHasMore(true);
+  }, [category]);
+
+  const loadMore = useCallback(async (currentOffset: number) => {
+    if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/feed?limit=${PAGE_SIZE}&offset=${offset}`);
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(currentOffset),
+      });
+      if (category) params.set("category", category);
+      const res = await fetch(`/api/feed?${params}`);
       const json = (await res.json()) as { articles: ApiArticle[]; total: number };
       if (!json.articles?.length) {
         setHasMore(false);
         return;
       }
-      setArticles((prev) => [...prev, ...json.articles]);
-      setOffset((o) => o + json.articles.length);
+      setArticles((prev) => (currentOffset === 0 ? json.articles : [...prev, ...json.articles]));
+      setOffset(currentOffset + json.articles.length);
       if (json.articles.length < PAGE_SIZE) setHasMore(false);
     } catch {
       setHasMore(false);
     } finally {
       setLoading(false);
     }
-  }, [loading, hasMore, offset]);
+  }, [loading, category]);
+
+  // Trigger initial load when category is set and articles are empty
+  useEffect(() => {
+    if (articles.length === 0 && hasMore && !loading) {
+      loadMore(0);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articles.length, hasMore]);
 
   const { ref } = useInView({
     threshold: 0,
     rootMargin: "200px",
-    onChange: (inView) => { if (inView) loadMore(); },
+    onChange: (inView) => { if (inView && articles.length > 0) loadMore(offset); },
   });
 
   const stories = articles.map(toStory);

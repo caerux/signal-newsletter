@@ -67,7 +67,7 @@ const COLLECTIONS = [
 ];
 
 export function Sidebar({ collapsed, onToggle }: Props) {
-  const { setView } = useView();
+  const { setView, activeCategory, setActiveCategory } = useView();
   const [categories, setCategories] = useState<Category[]>(PLACEHOLDER_CATEGORIES);
 
   useEffect(() => {
@@ -109,21 +109,27 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         <CollapseButton collapsed={collapsed} onToggle={onToggle} />
         {categories.map((c, i) => {
           const Icon = c.icon;
+          const isActive = activeCategory === c.slug;
           return (
             <button
               key={c.id}
               type="button"
               title={`${c.label} · ${c.count}`}
+              onClick={() => {
+                setActiveCategory(isActive ? null : c.slug);
+                setView("feed");
+              }}
               className="grid place-items-center"
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: "var(--r-md)",
                 background: FILL_VAR[c.accent],
-                border: "var(--bw-2) solid var(--ink)",
-                boxShadow: "var(--sh-xs)",
+                border: `${isActive ? "3px" : "var(--bw-2)"} solid var(--ink)`,
+                boxShadow: isActive ? "var(--sh-md)" : "var(--sh-xs)",
                 animation: "stampIn var(--d-reveal) var(--ease-spring) both",
                 animationDelay: `${80 + i * 60}ms`,
+                transform: isActive ? "translate(-2px,-2px)" : undefined,
               }}
             >
               <Icon size={16} strokeWidth={2.5} />
@@ -149,6 +155,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
       <ul className="flex flex-col gap-1.5">
         {categories.map((c, i) => {
           const Icon = c.icon;
+          const isActive = activeCategory === c.slug;
           return (
             <li
               key={c.id}
@@ -159,14 +166,24 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             >
               <button
                 type="button"
+                onClick={() => {
+                  setActiveCategory(isActive ? null : c.slug);
+                  setView("feed");
+                }}
                 className="flex w-full items-center gap-3 px-2.5 py-2 text-left"
-                style={{ borderRadius: "var(--r-md)" }}
+                style={{
+                  borderRadius: "var(--r-md)",
+                  background: isActive ? FILL_VAR[c.accent] : undefined,
+                  border: isActive ? "2px solid var(--ink)" : "2px solid transparent",
+                  transform: isActive ? "translate(-1px,-1px)" : undefined,
+                  boxShadow: isActive ? "var(--sh-sm)" : undefined,
+                  transition: "all 0.12s ease",
+                }}
               >
                 <span
                   className="grid place-items-center"
                   style={{
-                    width: 28,
-                    height: 28,
+                    width: 28, height: 28,
                     borderRadius: "var(--r-sm)",
                     background: FILL_VAR[c.accent],
                     border: "var(--bw-2) solid var(--ink)",
@@ -174,18 +191,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 >
                   <Icon size={13} strokeWidth={2.5} />
                 </span>
-                <span className="flex-1 text-[13.5px] font-semibold">
-                  {c.label}
-                </span>
-                <span
-                  className="font-mono"
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    color: "var(--muted)",
-                  }}
-                >
+                <span className="flex-1 text-[13.5px] font-semibold">{c.label}</span>
+                <span className="font-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--muted)" }}>
                   {c.count.toString().padStart(2, "0")}
                 </span>
               </button>

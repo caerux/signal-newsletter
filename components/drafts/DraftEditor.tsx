@@ -9,6 +9,7 @@ import {
   Check,
   ArrowLeft,
   Save,
+  Trash2,
 } from "lucide-react";
 import { Button, Chip, Eyebrow } from "@/components/ui";
 import { relativeTime } from "@/lib/relativeTime";
@@ -69,6 +70,12 @@ export function DraftEditor({ id, initialTitle, initialBody, initialStatus, upda
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  }
+
+  async function handleDelete() {
+    if (!confirm("Delete this draft? This can't be undone.")) return;
+    await fetch(`/api/drafts/${id}`, { method: "DELETE" });
+    router.push("/");
   }
 
   function handleExport() {
@@ -136,6 +143,11 @@ export function DraftEditor({ id, initialTitle, initialBody, initialStatus, upda
         <Button onClick={handleExport}>
           <Download size={13} strokeWidth={2.5} />
           Export .md
+        </Button>
+
+        <Button onClick={handleDelete} style={{ color: "var(--hot)" }}>
+          <Trash2 size={13} strokeWidth={2.5} />
+          Delete
         </Button>
       </div>
 

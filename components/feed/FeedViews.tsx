@@ -17,8 +17,9 @@ import {
   Eyebrow,
   Sticker,
 } from "@/components/ui";
-import { FILL_VAR, type Fill } from "@/lib/tokens";
+import { FILL_VAR, type Fill, type Signal } from "@/lib/tokens";
 import { useView, VIEW_LABELS, type AppView } from "@/components/shell/view-context";
+import { useBookmarks } from "@/components/shell/bookmark-context";
 import { relativeTime } from "@/lib/relativeTime";
 import { InfiniteFeed } from "./InfiniteFeed";
 import { StoryCard, type Story } from "./StoryCard";
@@ -119,9 +120,11 @@ const viewTransition = {
 };
 
 export function FeedViews({ initialArticles = [] }: { initialArticles?: FeedArticle[] }) {
-  const { view } = useView();
+  const { view, activeCategory } = useView();
   const router = useRouter();
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [savedArticles, setSavedArticles] = useState<Story[]>([]);
+  const { toggle } = useBookmarks();
 
   useEffect(() => {
     if (view === "drafts") {
@@ -138,8 +141,7 @@ export function FeedViews({ initialArticles = [] }: { initialArticles?: FeedArti
               wordCount: d.body_md.trim() ? d.body_md.trim().split(/\s+/).length : 0,
               updatedAt: relativeTime(d.updated_at),
               status: (["idea", "outline", "in-progress", "ready"].includes(d.status)
-                ? d.status
-                : "idea") as Draft["status"],
+                ? d.status : "idea") as Draft["status"],
             }))
           );
         })
@@ -147,14 +149,46 @@ export function FeedViews({ initialArticles = [] }: { initialArticles?: FeedArti
     }
   }, [view]);
 
-  async function createDraft() {
+  useEffect(() => {
+    if (view === "saved") {
+      fetch("/api/bookmarks?full=true")
+        .then((r) => r.json())
+        .then((json) => {
+          setSavedArticles(
+            (json.articles ?? []).map((a: {
+              id: string; title: string; description: string | null;
+              canonical_url: string; published_at: string | null;
+              signal: Signal; source: string; category: string | null; accent: Fill;
+            }) => ({
+              id: a.id,
+              eyebrow: a.category ?? "Signal",
+              title: a.title,
+              dek: a.description ?? "",
+              source: a.source,
+              time: relativeTime(a.published_at),
+              signal: a.signal,
+              accent: a.accent,
+              url: a.canonical_url,
+            }))
+          );
+        })
+        .catch(() => {});
+    }
+  }, [view]);
+
+  async function createDraft(title = "Untitled", body = "") {
     const res = await fetch("/api/drafts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Untitled" }),
+      body: JSON.stringify({ title, body_md: body }),
     });
     const json = await res.json() as { id: string };
     if (json.id) router.push(`/drafts/${json.id}`);
+  }
+
+  function removeSaved(id: string) {
+    toggle(id);
+    setSavedArticles((prev) => prev.filter((s) => s.id !== id));
   }
 
   return (
@@ -166,29 +200,43 @@ export function FeedViews({ initialArticles = [] }: { initialArticles?: FeedArti
         exit={{ opacity: 0, y: -6 }}
         transition={viewTransition}
       >
-        <ViewHeading view={view} onNewDraft={createDraft} />
-        {view === "feed" && <InfiniteFeed initialArticles={initialArticles} />}
-        {view === "saved" && <SavedList stories={SAVED} />}
-        {view === "drafts" && <DraftsList drafts={drafts} onNew={createDraft} />}
+        <ViewHeading view={view} onNewDraft={() => createDraft()} activeCategory={activeCategory} />
+        {view === "feed" && <InfiniteFeed initialArticles={initialArticles} category={activeCategory} />}
+        {view === "saved" && <SavedList stories={savedArticles} onRemove={removeSaved} onDraft={(s) => createDraft(s.title, `> From: ${s.url}\n\n## ${s.title}\n\n${s.dek}\n\n---\n\nWrite your take here…`)} />}
+        {view === "drafts" && <DraftsList drafts={drafts} onNew={() => createDraft()} />}
         {view === "trending" && <TrendingList items={TRENDING} />}
       </motion.div>
     </AnimatePresence>
   );
 }
 
-function ViewHeading({ view, onNewDraft }: { view: AppView; onNewDraft: () => void }) {
+function ViewHeading({ view, onNewDraft, activeCategory }: { view: AppView; onNewDraft: () => void; activeCategory?: string | null }) {
+  const { setActiveCategory } = useView();
   if (view === "feed") {
     return (
       <Brick
         fill="lemon"
         className="p-6 mb-5"
-        style={{
-          animation: "popUp var(--d-reveal) var(--ease-spring) both",
-        }}
+        style={{ animation: "popUp var(--d-reveal) var(--ease-spring) both" }}
       >
         <div className="flex items-center gap-2 mb-3">
           <Flame size={14} strokeWidth={2.5} />
           <Eyebrow>Today · for you</Eyebrow>
+          {activeCategory && (
+            <button
+              type="button"
+              onClick={() => setActiveCategory(null)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                padding: "2px 8px", borderRadius: "var(--r-pill)",
+                background: "var(--ink)", color: "var(--bg)",
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+                border: "none", cursor: "pointer",
+              }}
+            >
+              {activeCategory.toUpperCase()} ×
+            </button>
+          )}
         </div>
         <h1
           className="font-display font-bold leading-[1.02] mb-3"
@@ -274,8 +322,17 @@ function ViewHeading({ view, onNewDraft }: { view: AppView; onNewDraft: () => vo
 
 /* ---------- Saved ---------- */
 
-function SavedList({ stories }: { stories: Story[] }) {
-  if (stories.length === 0) return <Empty label="Nothing saved yet" />;
+function SavedList({ stories, onRemove, onDraft }: { stories: Story[]; onRemove: (id: string) => void; onDraft: (s: Story) => void }) {
+  if (stories.length === 0) {
+    return (
+      <Brick className="p-10 text-center">
+        <p className="label-eyebrow mb-3">Nothing saved yet</p>
+        <p className="text-[14px] font-medium" style={{ color: "var(--muted)" }}>
+          Press <strong>S</strong> on any article in the feed to save it here.
+        </p>
+      </Brick>
+    );
+  }
   return (
     <section className="flex flex-col gap-4">
       {stories.map((s, i) => (
@@ -302,11 +359,11 @@ function SavedList({ stories }: { stories: Story[] }) {
             {s.dek}
           </p>
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="primary">
+            <Button variant="primary" onClick={() => onDraft(s)}>
               <Pencil size={13} strokeWidth={2.5} />
               Draft from this
             </Button>
-            <Button>
+            <Button onClick={() => onRemove(s.id)}>
               <Bookmark size={13} strokeWidth={2.5} />
               Remove
             </Button>
