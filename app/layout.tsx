@@ -40,7 +40,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="h-screen overflow-hidden bg-bg text-ink">{children}</body>
+      <body className="h-screen overflow-hidden bg-bg text-ink" suppressHydrationWarning>{children}</body>
       {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
         <Script
           defer
